@@ -1,0 +1,66 @@
+input[type='text'],
+select,
+textarea {
+	width: 200px;
+	padding: 12px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	display: flex;
+}
+
+input[type='password'],
+select,
+textarea {
+	width: 200px;
+	padding: 12px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	display: flex;
+}
+
+.input[type='submit'] {
+	background-color: dodgerblue;
+	color: white;
+	border: none;
+	padding: 12px 24px;
+	text-align: center;
+	font-size: 16px;
+	font-weight: bold;
+	cursor: pointer;
+	border-radius: 6px;
+}
+
+.btn {
+	background-color: dodgerblue;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	padding: 8px 16px;
+	font-size: 16px;
+	cursor: pointer;
+	text-decoration: none;
+	transition: all 0.2s ease-in-out;
+	margin-bottom: 15px;
+}
+
+.navbar {
+	display: flex;
+	flex-direction: row;
+	gap: 30px;
+}
+
+.logo {
+	font-size: x-large;
+	font-weight: bold;
+	border-radius: 20px;
+	text-align: center;
+	display: flex;
+	margin-bottom: 15px;
+}
+
+.newPost {
+	display: flex;
+	flex-direction: column;
+	width: 200px;
+	margin-top: 30px;
+}
