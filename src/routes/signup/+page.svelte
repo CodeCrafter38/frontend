@@ -33,4 +33,4 @@
 <input type="text" bind:value={email} placeholder="Email" />
 <input type="password" bind:value={password} placeholder="Password" />
 <input type="text" bind:value={role} placeholder="Role" />
-<input type="submit" value="Register" on:click={signup} />
+<input type="submit" value="Register" onclick={signup} />

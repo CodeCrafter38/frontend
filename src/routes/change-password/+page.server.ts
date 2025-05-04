@@ -1,15 +1,20 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import api from '$lib/api';
 
-export const load: PageServerLoad = async ({ fetch }) => {
-	//TODO: refactor
-	const res = await fetch('http://localhost:4000/api/me', {
-		credentials: 'include'
-	});
+// export const load: PageServerLoad = async () => {
+// 	//TODO: refactor
 
-	if (!res.ok) {
-		throw redirect(302, '/login');
-	}
+// 	const res = await fetch('http://localhost:4000/api/me', {
+// 		credentials: 'include'
+// 	});
+// 	// const res = await api.get('/me');
 
-	return {};
-};
+// 	console.log('res: ', res);
+
+// 	if (res.status !== 200) {
+// 		throw redirect(302, '/login');
+// 	}
+
+// 	return {};
+// };

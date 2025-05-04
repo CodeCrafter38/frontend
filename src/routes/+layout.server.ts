@@ -1,16 +1,19 @@
-import axios from 'axios';
+// export const load = async ({ fetch }): Promise<{ user: { username: string } | null }> => {
+// 	try {
+// 		const res = await fetch('http://localhost:4000/api/me', {
+// 			credentials: 'include' // include cookies
+// 		});
 
-export async function load({ request }) {
-	try {
-		const res = await axios.get('http://localhost:4000/api/me', {
-			headers: {
-				// pass cookies from SSR (server-side-rendering)
-				cookie: request.headers.get('cookie')
-			},
-			withCredentials: true
-		});
-		return { user: res.data };
-	} catch {
-		return { user: null };
-	}
-}
+// 		if (res.ok) {
+// 			//console.log('res.json in layout server ts: ', res.json());
+// 			const user = await res.json();
+// 			console.log('user in layout server ts: ', user);
+// 			return { user };
+// 		}
+
+// 		return { user: null };
+// 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// 	} catch (e: any) {
+// 		return { user: null };
+// 	}
+// };

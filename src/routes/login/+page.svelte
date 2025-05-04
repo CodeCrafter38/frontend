@@ -14,10 +14,11 @@
 				.post('/login', { email, password })
 				.then((response) => {
 					if (response.status !== 200) {
-						throw new Error('Login falied!');
+						throw new Error('Login failed!');
+					} else {
+						alert('Logged in succesfully');
+						goto('/home');
 					}
-					alert('Logged in succesfully');
-					goto('/home');
 				})
 				.then((data) => console.log(data))
 				.catch((error) => console.error(error));

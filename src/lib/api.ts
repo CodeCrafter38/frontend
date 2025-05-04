@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const backendPort = import.meta.env.VITE_EXPRESS_PORT;
+
 const api = axios.create({
-	baseURL: 'http://localhost:4000/api',
+	baseURL: `http://localhost:${backendPort}/api`,
 	withCredentials: true, // sends cookies with requests
 	headers: {
 		'Content-Type': 'application/json'

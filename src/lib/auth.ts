@@ -1,33 +1,27 @@
-import type { RequestEvent } from '@sveltejs/kit';
+import api from './api';
 
-export const authenticateUser = (event: RequestEvent) => {
-	// get the cookies from the request
-	const { cookies } = event;
+export const getUserStatus = async () => {
+	const res = await api.get('/me');
 
 	// get the user token from the cookie
-	const userToken = cookies.get('auth');
+	console.log('res in auth.ts: ', res);
 
-	// TODO: check user token against database
-	// if it is valid then return the user object
-	// if it is not valid, return null
-	if (userToken === 'regularusertoken') {
-		const user = {
-			id: 1,
-			username: 'user',
-			email: 'user@example.com',
-			role: 'USER'
-		};
-		return user;
-	}
-	if (userToken === 'adminusertoken') {
-		const user = {
-			id: 2,
-			username: 'admin',
-			email: 'admin@example.com',
-			role: 'ADMIN'
-		};
-		return user;
-	}
-
-	return null;
+	return res ?? null;
 };
+
+// export const authenticateUser = async () => {
+// 	// get the cookies from the request
+// 	const { cookies } = event;
+// 	console.log('cookies in auth.ts: ', cookies);
+
+// 	// get the user token from the cookie
+// 	const userToken = cookies.get('auth');
+// 	console.log('userToken in auth.ts: ', userToken);
+
+// 	// if the user token is not valid, return null
+// 	// this is where you would check the user token against your database
+// 	// to see if it is valid and return the user object
+// 	const res = await api.get('/me');
+
+// 	return res ?? null;
+// };
