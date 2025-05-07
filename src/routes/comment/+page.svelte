@@ -4,9 +4,12 @@
 	import { getUserStatus } from '$lib/auth';
 	import { logout } from '$lib/logout';
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 
 	let content: string = $state('');
 	let userName: string = '';
+
+	const postId = page.url.searchParams.get('postId');
 
 	onMount(async () => {
 		try {
@@ -20,15 +23,15 @@
 		}
 	});
 
-	// async function createComment() {
-	// 	try {
-	// 		const res = await api.post('/comments', {});
-	// 		alert('Comment created succesfully');
-	// 		goto('/home');
-	// 	} catch (e: any) {
-	// 		alert(e.response?.data?.msg || 'Failed to create comment');
-	// 	}
-	// }
+	async function createComment() {
+		try {
+			const res = await api.post('/comments', { postId, userName, content });
+			alert('Comment added to the post succesfully');
+			goto('/home');
+		} catch (e: any) {
+			alert(e.response?.data?.msg || 'Failed to create comment');
+		}
+	}
 
 	async function onLogout() {
 		try {
@@ -43,5 +46,5 @@
 <button class="btn" onclick={onLogout}>Logout</button>
 <div class="newPost">
 	<textarea bind:value={content} placeholder="Content"></textarea>
-	<button onclick={() => {}}>Create comment</button>
+	<button onclick={createComment}>Create comment</button>
 </div>
