@@ -7,16 +7,15 @@
 
 	async function login() {
 		if (email == '' || password == '') {
-			alert('All fields must be filled!');
-			goto('/login');
+			alert('Minden mezőt kötelező kitölteni!');
 		} else {
 			await api
 				.post('/login', { email, password })
 				.then((response) => {
 					if (response.status !== 200) {
-						throw new Error('Login failed!');
+						throw new Error('Sikertelen bejelentkezés!');
 					} else {
-						alert('Logged in succesfully');
+						alert('Sikeres bejelentkezés');
 						goto('/home');
 					}
 				})
@@ -26,8 +25,9 @@
 	}
 </script>
 
-<a href="/signup" class="btn">Sign up</a>
-<h2>Login</h2>
-<input type="text" bind:value={email} placeholder="Email" />
-<input type="password" bind:value={password} placeholder="Password" />
-<input type="submit" on:click={login} />
+<a href="/signup" class="btn">Regisztráció</a>
+<h2>Bejelentkezés</h2>
+<input type="text" bind:value={email} placeholder="Email cím" />
+<input type="password" bind:value={password} placeholder="Jelszó" />
+<br />
+<input class="btn" type="submit" value="Bejelentkezek" on:click={login} />

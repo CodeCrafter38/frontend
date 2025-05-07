@@ -33,12 +33,22 @@
 	});
 
 	async function createPost() {
-		try {
-			const res = await api.post('/posts', { title, content, userName, isPublic, selectedGroups });
-			alert('Post created succesfully');
-			goto('/home');
-		} catch (e: any) {
-			alert(e.response?.data?.msg || 'Failed to create post');
+		if (title == '' || content == '') {
+			alert('A címet és a tartalmat kötelező kitölteni!');
+		} else {
+			try {
+				const res = await api.post('/posts', {
+					title,
+					content,
+					userName,
+					isPublic,
+					selectedGroups
+				});
+				alert('Poszt létrehozva');
+				goto('/home');
+			} catch (e: any) {
+				alert(e.response?.data?.msg || 'Poszt létrehozása sikertelen!');
+			}
 		}
 	}
 
@@ -46,7 +56,7 @@
 		try {
 			await logout();
 		} catch {
-			alert('Logout failed');
+			alert('Sikertelen kijelentkezés!');
 		}
 	}
 
@@ -62,11 +72,13 @@
 	}
 </script>
 
-<a href="/home" class="btn">Home</a>
-<button class="btn" onclick={onLogout}>Logout</button>
+<a href="/home" class="btn">Kezdőlap</a>
+<button class="btn" onclick={onLogout}>Kijelentkezés</button>
+<div class="logo">Új poszt létrehozása</div>
 <div class="newPost">
-	<input bind:value={title} placeholder="Title" />
-	<textarea bind:value={content} placeholder="Content"></textarea>
+	<input bind:value={title} placeholder="Cím" />
+	<br />
+	<textarea bind:value={content} placeholder="Tartalom"></textarea>
 	<br />
 	<label>
 		<input
@@ -77,10 +89,10 @@
 			onchange={() => toggleVisibility}
 			bind:checked={isPublic}
 		/>
-		Public
+		Nyilvános
 	</label>
 	<br />
-	<div>Select the groups to which you want to send the post</div>
+	<div>Válaszd ki a csoportokat, amelyekbe szeretnéd beküldeni a posztot</div>
 	{#each groupIds as groupId}
 		<label>
 			<input
@@ -92,6 +104,6 @@
 			{groupId}
 		</label><br />
 	{/each}
-	<p>Selected groups: {selectedGroups.join(', ')}</p>
-	<button onclick={createPost}>Create Post</button>
+	<p>Kiválasztott csoportok: {selectedGroups.join(', ')}</p>
+	<button class="btn" onclick={createPost}>Poszt létrehozása</button>
 </div>

@@ -64,3 +64,37 @@ textarea {
 	width: 200px;
 	margin-top: 30px;
 }
+
+.post {
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	padding: 1rem;
+	margin-bottom: 1.5rem;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.post h2 {
+	margin: 0 0 0.5rem 0;
+	font-size: 1.5rem;
+	color: #333;
+}
+
+.post-content {
+	margin-bottom: 1rem;
+	white-space: pre-wrap;
+	color: #444;
+}
+
+.comments {
+	list-style: none;
+	padding-left: 0;
+}
+
+.comments li {
+	padding: 0.5rem;
+	border-top: 1px solid #eee;
+}
+
+.comments li:first-child {
+	border-top: none;
+}

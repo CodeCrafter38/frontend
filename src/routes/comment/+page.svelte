@@ -24,12 +24,16 @@
 	});
 
 	async function createComment() {
-		try {
-			const res = await api.post('/comments', { postId, userName, content });
-			alert('Comment added to the post succesfully');
-			goto('/home');
-		} catch (e: any) {
-			alert(e.response?.data?.msg || 'Failed to create comment');
+		if (content == '') {
+			alert('A komment tartalmát kötelező kitölteni!');
+		} else {
+			try {
+				const res = await api.post('/comments', { postId, userName, content });
+				alert('Sikeres komment beküldés');
+				goto('/home');
+			} catch (e: any) {
+				alert(e.response?.data?.msg || 'Sikertelen komment beküldés!');
+			}
 		}
 	}
 
@@ -37,14 +41,15 @@
 		try {
 			await logout();
 		} catch {
-			alert('Logout failed');
+			alert('Sikertelen kijelentkezés!');
 		}
 	}
 </script>
 
-<a href="/home" class="btn">Home</a>
-<button class="btn" onclick={onLogout}>Logout</button>
+<a href="/home" class="btn">Kezdőlap</a>
+<button class="btn" onclick={onLogout}>Kijelentkezés</button>
 <div class="newPost">
-	<textarea bind:value={content} placeholder="Content"></textarea>
-	<button onclick={createComment}>Create comment</button>
+	<textarea bind:value={content} placeholder="Komment tartalma"></textarea>
+	<br />
+	<button class="btn" onclick={createComment}>Komment beküldése</button>
 </div>

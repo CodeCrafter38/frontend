@@ -9,16 +9,16 @@
 
 	async function signup() {
 		if (username == '' || email == '' || password == '' || role == '') {
-			alert('All fields must be filled!');
+			alert('Minden mezőt kötelező kitölteni!');
 			goto('/signup');
 		} else {
 			await api
 				.post('/signup', { username, email, password, role })
 				.then((response) => {
 					if (response.status !== 200) {
-						throw new Error('Signup failed!');
+						throw new Error('Sikertelen regisztráció!');
 					}
-					alert('User created succesfully');
+					alert('Felhasználó létrehozva');
 					goto('/login');
 				})
 				.then((data) => console.log(data))
@@ -27,10 +27,11 @@
 	}
 </script>
 
-<a href="/login" class="btn">Login</a>
-<h2>Sign up</h2>
-<input type="text" bind:value={username} placeholder="Username" />
-<input type="text" bind:value={email} placeholder="Email" />
-<input type="password" bind:value={password} placeholder="Password" />
-<input type="text" bind:value={role} placeholder="Role" />
-<input type="submit" value="Register" onclick={signup} />
+<a href="/login" class="btn">Bejelentkezés</a>
+<h2>Regisztráció</h2>
+<input type="text" bind:value={username} placeholder="Felhasználónév" />
+<input type="text" bind:value={email} placeholder="Email cím" />
+<input type="password" bind:value={password} placeholder="Jelszó" />
+<input type="text" bind:value={role} placeholder="Szerepkör" />
+<br />
+<input class="btn" type="submit" value="Regisztrálok" onclick={signup} />

@@ -2,7 +2,7 @@
 	import '../app.css';
 	// import { storable } from '../stores';
 
-	let { children, data } = $props();
+	let { children } = $props();
 	// const store = storable(user);
 
 	// $effect(() => {

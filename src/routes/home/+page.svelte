@@ -5,27 +5,23 @@
 	import api from '$lib/api';
 
 	let posts: any = [];
-	let comments: any = [];
 
 	onMount(async () => {
 		try {
 			const user = await getUserStatus();
-			console.log('lofasz in home route page svelte: ', user);
-			const fetchedPosts = await api.get('/posts');
-			posts = fetchedPosts.data;
-			console.log('posts in home page: ', fetchedPosts);
-			const fetchedComments = await api.get('/comments');
-			comments = fetchedComments.data;
-			console.log('comments in home page: ', fetchedComments);
+			console.log('user in home route page svelte: ', user);
+			loadPosts();
 		} catch (e: any) {
 			alert('You are not authenticated');
 			goto('/login');
 		}
 	});
 
-	// async function onAddComment(postId: number) {
-	// 	goto(`/comment?postId=${postId}`);
-	// }
+	const loadPosts = async () => {
+		const fetchedPosts = await api.get('/posts');
+		posts = fetchedPosts.data;
+		console.log('posts in home page: ', fetchedPosts);
+	};
 
 	async function onLogout() {
 		try {
@@ -35,21 +31,45 @@
 			goto('/login');
 			// 	await logout();
 		} catch {
-			alert('Logout failed');
+			alert('Sikertelen kijelentkezés!');
 		}
 	}
 </script>
 
-<a href="/new-post" class="btn">New post</a>
-<button class="btn" onclick={onLogout}>Logout</button>
-<h1>Blog Posts</h1>
-<ul>
+<a href="/new-post" class="btn">Új poszt</a>
+<button class="btn" onclick={onLogout}>Kijelentkezés</button>
+<!-- <h1>Blog Posts</h1>
+<ul> -->
+<!-- {#each posts as post}
+		<li>{post.title}<br />{post.content}<br />Comments:<br /></li>
+		<br />
+		<a href={`/comment?postId=${post.id}`} class="btn">Add comment</a>
+		<br />
+		<br />
+	{/each} -->
+<!-- </ul> -->
+
+{#if posts.length === 0}
+	<p>Még nincsenek posztok.</p>
+{:else}
 	{#each posts as post}
-		<li>{post.title}<br />{post.content}<br />Comments<br /></li>
-		<br />
-		<!-- <button class="btn" onclick={() => onAddComment(post.id)}>Add comment</button> -->
-		<a href={`/comment?value=${post.id}`} class="btn">Add comment</a>
-		<br />
-		<br />
+		<div class="post">
+			<h2>{post.title}</h2>
+			<div class="post-content">{post.content}</div>
+
+			{#if post.comments.length > 0}
+				<strong>Kommentek:</strong>
+				<ul class="comments">
+					{#each post.comments as comment}
+						<li>{comment.content}</li>
+					{/each}
+				</ul>
+			{:else}
+				<em>Még nincsenek kommentek.</em>
+				<br />
+				<br />
+			{/if}
+			<a href={`/comment?postId=${post.id}`} class="btn">Hozzászólok</a>
+		</div>
 	{/each}
-</ul>
+{/if}
