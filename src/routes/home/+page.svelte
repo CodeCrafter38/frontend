@@ -5,11 +5,13 @@
 	import api from '$lib/api';
 
 	let posts: any = [];
+	let userName = '';
 
 	onMount(async () => {
 		try {
 			const user = await getUserStatus();
 			console.log('user in home route page svelte: ', user);
+			userName = user.data.user;
 			loadPosts();
 		} catch (e: any) {
 			alert('You are not authenticated');
@@ -18,7 +20,7 @@
 	});
 
 	const loadPosts = async () => {
-		const fetchedPosts = await api.get('/posts');
+		const fetchedPosts = await api.get(`/posts?username=${userName}`);
 		posts = fetchedPosts.data;
 		console.log('posts in home page: ', fetchedPosts);
 	};
@@ -57,7 +59,7 @@
 			<h2>{post.title}</h2>
 			<div class="post-content">{post.content}</div>
 
-			{#if post.comments.length > 0}
+			{#if post.comments.length !== 0}
 				<strong>Kommentek:</strong>
 				<ul class="comments">
 					{#each post.comments as comment}

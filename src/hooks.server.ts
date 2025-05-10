@@ -1,23 +1,12 @@
-// export const handle: Handle = async ({ event, resolve }) => {
-// 	// Stage 1
-// 	// event.locals.user = authenticateUser(event);
-// 	const lofasz = authenticateUser(event);
-// 	console.log('return of authenticateUser in hooks.server.ts: ', lofasz);
+import type { Handle } from '@sveltejs/kit';
 
-// 	// if (event.url.pathname.startsWith('/protected')) {
-// 	// 	if (!event.locals.user) {
-// 	// 		throw redirect(303, '/');
-// 	// 	}
-// 	// 	if (event.url.pathname.startsWith('/protected/admin')) {
-// 	// 		if (event.locals.user.role !== 'ADMIN') {
-// 	// 			throw redirect(303, '/protected');
-// 	// 		}
-// 	// 	}
-// 	// }
+export const handle: Handle = async ({ event, resolve }) => {
+	// egy google Chrome devTools probléma miatt van szükség erre a kódra
+	// a frontend konzolján folyamatosan kiír egy hibát, ami nem befolyásolja a program működését, de zavaró
+	// több infó: https://github.com/sveltejs/kit/issues/13743
+	if (event.url.pathname.startsWith('/.well-known/appspecific/com.chrome.devtools')) {
+		return new Response(null, { status: 204 }); // Üres válasz visszaadása 204 no-content státusszal
+	}
 
-// 	const response = await resolve(event); // Stage 2
-
-// 	// Stage 3
-
-// 	return response;
-// };
+	return await resolve(event);
+};
