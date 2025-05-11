@@ -59,7 +59,7 @@
 			<h2>{post.title}</h2>
 			<div class="post-content">{post.content}</div>
 
-			{#if post.comments.length !== 0}
+			{#if post.comments.length > 0}
 				<strong>Kommentek:</strong>
 				<ul class="comments">
 					{#each post.comments as comment}
