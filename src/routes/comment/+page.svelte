@@ -24,7 +24,7 @@
 			const user = await getUserStatus();
 			userName = user.data.user;
 		} catch (e: any) {
-			alert('You are not authenticated');
+			alert('Sikertelen azonosítás!');
 			goto('/login');
 		}
 	});

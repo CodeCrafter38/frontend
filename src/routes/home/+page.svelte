@@ -23,7 +23,7 @@
 			userName = user.data.user;
 			loadPosts();
 		} catch {
-			alert('You are not authenticated');
+			alert('Sikertelen azonosítás!');
 			goto('/login');
 		}
 	});
@@ -88,7 +88,12 @@
 				<div class="post">
 					<h3>{post.title}</h3>
 					<div class="post-content">{post.content}</div>
-
+					{#if post.video_link}
+						<div class="post-content">{post.video_link}</div>
+					{/if}
+					{#if post.files}
+						<div class="post-content">{post.files}</div>
+					{/if}
 					{#if post.comments.length > 0}
 						<strong>Kommentek:</strong>
 						<ul class="comments">

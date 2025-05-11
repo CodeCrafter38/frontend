@@ -13,11 +13,16 @@
 
 	let title: string = $state('');
 	let content: string = $state('');
+	let files: any[] = $state([]);
+	let videoLink: string = $state('');
 	let userName: string = '';
 	let availableGroups: Group[] = $state([]);
 	let selectedGroups: Group[] = $state([]);
 	let isPublic = $state(false);
 	let theme = $state('light');
+
+	// files értékének kiíratása konzolba, ha frissül
+	// $inspect(files);
 
 	onMount(async () => {
 		const storedTheme = localStorage.getItem('theme');
@@ -58,10 +63,24 @@
 	async function createPost() {
 		if (title === '' || content === '') {
 			alert('A címet és a tartalmat kötelező kitölteni!');
+		} else if (selectedGroups.length == 0 && !isPublic) {
+			alert('Ha nem publikus a poszt, akkor legalább egy csoportot ki kell választani!');
 		} else {
 			try {
+				const formData = new FormData();
+				console.log('files a formData.append előtt (itt még megvan a fájl): ', files);
+				formData.append('files', files[0]);
+				console.log('formData az api.post előtt (ide már nem kerül rá a fájl): ', formData);
 				const selectedGroupIds = selectedGroups.map((g) => g.group_id);
-				await api.post('/posts', { title, content, userName, isPublic, selectedGroupIds });
+				await api.post('/posts', {
+					title,
+					content,
+					userName,
+					isPublic,
+					selectedGroupIds,
+					videoLink,
+					files
+				});
 				alert('Poszt létrehozva');
 				goto('/home');
 			} catch (e: any) {
@@ -89,6 +108,10 @@
 	function onHome() {
 		goto('/home');
 	}
+
+	function onFileChange(event: any) {
+		files = Array.from(event.target.files);
+	}
 </script>
 
 <div class="sidebar">
@@ -107,6 +130,14 @@
 	<form on:submit|preventDefault={createPost}>
 		<input bind:value={title} placeholder="Cím" />
 		<textarea bind:value={content} placeholder="Tartalom"></textarea>
+		<input
+			type="file"
+			multiple
+			accept="image/*,.doc,.docx,.xls,.xlsx"
+			placeholder="Fájl helye"
+			on:change={onFileChange}
+		/>
+		<input type="url" bind:value={videoLink} placeholder="Youtube link helye" />
 
 		{#if availableGroups.length}
 			<label>
