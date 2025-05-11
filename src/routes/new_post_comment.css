@@ -102,7 +102,7 @@
 		width: 100%;
 	}
 
-	/* Optional: Stack buttons in sidebar if space too tight */
+	/* Gombok igazítása, hogy nagyobb legyen köztük a hely */
 	.sidebar {
 		flex-wrap: wrap;
 		gap: 0.5rem;

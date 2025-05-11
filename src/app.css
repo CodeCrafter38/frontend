@@ -1,7 +1,7 @@
 /* login page  */
 
 :root {
-	/* Default: Light Theme */
+	/* Default: Világos téma */
 	--color-orange: #f96c06;
 	--color-dark-blue: #161c26;
 	--color-dark-bg: #0d1117;
@@ -257,11 +257,11 @@ a:hover {
 }
 
 body.light .sidebar .btn {
-	background-color: var(--color-dark-blue); /* Dark button on orange background */
+	background-color: var(--color-dark-blue); /* Sötét gomb narancssárga háttéren */
 }
 
 body.dark .sidebar .btn {
-	background-color: var(--color-orange); /* Keep orange in dark mode */
+	background-color: var(--color-orange); /* Narancssásrga gomb dark mode-ban */
 }
 
 .actions .btn:hover {
