@@ -85,6 +85,10 @@
 			selectedGroups = [...selectedGroups, item];
 		}
 	}
+
+	function onHome() {
+		goto('/home');
+	}
 </script>
 
 <div class="sidebar">
@@ -94,7 +98,7 @@
 	<button class="toggle-btn" on:click={toggleTheme}>
 		{theme === 'light' ? '🌙' : '☀️'}
 	</button>
-	<a href="/home" class="btn">Kezdőlap</a>
+	<button class="btn" on:click={onHome}>Kezdőlap</button>
 	<button class="btn" on:click={onLogout}>Kijelentkezés</button>
 </div>
 
