@@ -14,8 +14,8 @@
 	// console.log('user in layout: ', user);
 </script>
 
-<div class="logo">Nexus</div>
-<div class="navbar"></div>
+<!-- <div class="logo">Nexus</div>
+<div class="navbar"></div> -->
 
 <!-- {#if user !== null}
 	<p>Logged in as {user}</p>

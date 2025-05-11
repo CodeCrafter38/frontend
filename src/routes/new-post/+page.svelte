@@ -4,6 +4,7 @@
 	import { getUserStatus } from '$lib/auth';
 	import { logout } from '$lib/logout';
 	import { onMount } from 'svelte';
+	import logo from '$lib/assets/Nexus_white.png';
 
 	type Group = {
 		group_id: number;
@@ -16,44 +17,51 @@
 	let availableGroups: Group[] = $state([]);
 	let selectedGroups: Group[] = $state([]);
 	let isPublic = $state(false);
-
-	$inspect(availableGroups, selectedGroups);
+	let theme = $state('light');
 
 	onMount(async () => {
+		const storedTheme = localStorage.getItem('theme');
+		if (storedTheme) {
+			theme = storedTheme;
+		}
+		updateBodyClass();
+
 		try {
 			const user = await getUserStatus();
-			console.log('user a new-post route page-en: ', user);
 			userName = user.data.user;
-			console.log('userName a new-post route page-en: ', userName);
-		} catch (e: any) {
+		} catch {
 			alert('Sikertelen azonosítás!');
 			goto('/login');
 		}
+
 		try {
 			const groupsOfUser = await api.get(`/groups/ofUser?username=${userName}`);
-			console.log('groupsOfUser a new-post route page-en: ', groupsOfUser);
 			groupsOfUser.data.forEach((group: any) => {
 				availableGroups.push(group);
 			});
-		} catch (e: any) {
-			alert('Bejelentkezett felhasználó csoportjainak lekérdezése sikertelen!');
+		} catch {
+			alert('Csoportok lekérdezése sikertelen!');
 		}
 	});
 
+	function toggleTheme() {
+		theme = theme === 'light' ? 'dark' : 'light';
+		localStorage.setItem('theme', theme);
+		updateBodyClass();
+	}
+
+	function updateBodyClass() {
+		document.body.classList.remove('light', 'dark');
+		document.body.classList.add(theme);
+	}
+
 	async function createPost() {
-		if (title == '' || content == '') {
+		if (title === '' || content === '') {
 			alert('A címet és a tartalmat kötelező kitölteni!');
 		} else {
 			try {
-				const selectedGroupIds: number[] = getSelectedGroupIds(selectedGroups);
-				console.log('selectedGroupIds: ', selectedGroupIds);
-				const res = await api.post('/posts', {
-					title,
-					content,
-					userName,
-					isPublic,
-					selectedGroupIds
-				});
+				const selectedGroupIds = selectedGroups.map((g) => g.group_id);
+				await api.post('/posts', { title, content, userName, isPublic, selectedGroupIds });
 				alert('Poszt létrehozva');
 				goto('/home');
 			} catch (e: any) {
@@ -77,67 +85,57 @@
 			selectedGroups = [...selectedGroups, item];
 		}
 	}
-
-	function toggleVisibility() {
-		isPublic = !isPublic;
-	}
-
-	function getSelectedGroupIds(groups: Group[]): number[] {
-		const selectedGroupIds: number[] = [];
-		groups.forEach((group) => {
-			selectedGroupIds.push(group.group_id);
-		});
-		return selectedGroupIds;
-	}
 </script>
 
-<a href="/home" class="btn">Kezdőlap</a>
-<button class="btn" onclick={onLogout}>Kijelentkezés</button>
-<div class="logo">Új poszt létrehozása</div>
-<div class="newPost">
-	<input bind:value={title} placeholder="Cím" />
-	<br />
-	<textarea bind:value={content} placeholder="Tartalom"></textarea>
-	<br />
-	{#if availableGroups.length}
-		<label>
-			<input
-				type="checkbox"
-				id="visibility"
-				name="visibility"
-				onchange={() => toggleVisibility}
-				bind:checked={isPublic}
-			/>
-			Nyilvános
-		</label>
-		<br />
-		<div>Válaszd ki a csoportokat, amelyekbe szeretnéd beküldeni a posztot</div>
-		<br />
-		{#each availableGroups as availableGroup}
-			<label>
-				<input
-					type="checkbox"
-					value={availableGroup.group_id}
-					onchange={() => toggleGroup(availableGroup)}
-					checked={selectedGroups.includes(availableGroup)}
-					disabled={isPublic}
-				/>
-				{availableGroup.name}
-			</label><br />
-		{/each}
-		<p>
-			Kiválasztott csoportok:
-			{#each selectedGroups as selectedGroup, i}
-				{#if i < selectedGroups.length - 1}
-					{selectedGroup.name + ', '}
-				{:else}
-					{selectedGroup.name}
-				{/if}
-			{/each}
-		</p>
-	{:else}
-		<div>Nem vagy benne semmilyen csoportban, ezért csak nyilvános posztot tudsz létrehozni</div>
-		<br />
-	{/if}
-	<button class="btn" onclick={createPost}>Poszt létrehozása</button>
+<div class="sidebar">
+	<div class="logo">
+		<img src={logo} alt="Nexus logo" />
+	</div>
+	<button class="toggle-btn" on:click={toggleTheme}>
+		{theme === 'light' ? '🌙' : '☀️'}
+	</button>
+	<a href="/home" class="btn">Kezdőlap</a>
+	<button class="btn" on:click={onLogout}>Kijelentkezés</button>
 </div>
+
+<div class="content-pane">
+	<h1>Új poszt létrehozása</h1>
+	<form on:submit|preventDefault={createPost}>
+		<input bind:value={title} placeholder="Cím" />
+		<textarea bind:value={content} placeholder="Tartalom"></textarea>
+
+		{#if availableGroups.length}
+			<label>
+				<input type="checkbox" bind:checked={isPublic} />
+				Nyilvános
+			</label>
+			<div>Válaszd ki a csoportokat:</div>
+			{#each availableGroups as availableGroup}
+				<label>
+					<input
+						type="checkbox"
+						disabled={isPublic}
+						checked={selectedGroups.includes(availableGroup)}
+						on:change={() => toggleGroup(availableGroup)}
+					/>
+					{availableGroup.name}
+				</label><br />
+			{/each}
+			<p>
+				Kiválasztott csoportok:
+				{#each selectedGroups as g, i}
+					{g.name}{i < selectedGroups.length - 1 ? ', ' : ''}
+				{/each}
+			</p>
+		{:else}
+			<p>Nem vagy benne egyik csoportban sem, csak nyilvános posztot tudsz létrehozni.</p>
+		{/if}
+
+		<button class="btn" type="submit">Poszt létrehozása</button>
+	</form>
+</div>
+S
+
+<style>
+	@import '../new_post_comment.css';
+</style>
