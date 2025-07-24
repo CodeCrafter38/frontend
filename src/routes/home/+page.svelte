@@ -89,10 +89,42 @@
 					<h3>{post.title}</h3>
 					<div class="post-content">{post.content}</div>
 					{#if post.video_link}
-						<div class="post-content">{post.video_link}</div>
+						<!-- a megadott target és a rel attribútumok megakadályozzák, hogy a belinkelt oldal
+						elérje a forrás oldal window objektumát, és visszatartják a hivatkozási információkat
+						- biztonsági okokból van rá szükség -->
+						<p>
+							<a
+								href={post.video_link}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="text-blue-600 hover:underline"
+							>
+								{post.video_link}
+							</a>
+						</p>
 					{/if}
-					{#if post.files}
-						<div class="post-content">{post.files}</div>
+					{#if post.files !== null && post.files.length > 0}
+						{#each post.files as file}
+							{#if file.mimetype?.startsWith('image/')}
+								<img
+									src={`http://localhost:4000/api/files?filename=${file.filename}`}
+									alt="Kép"
+									width="200"
+								/>
+							{:else}
+								<a
+									href={`http://localhost:4000/api/files?filename=${file.filename}`}
+									target="_blank">{file.filename}</a
+								>
+							{/if}
+						{/each}
+					{/if}
+					{#if post.labels && post.labels.length}
+						<p class="post-labels">
+							{#each post.labels as label, i (label)}
+								{`#${label}`}{i < post.labels.length - 1 ? ', ' : ''}
+							{/each}
+						</p>
 					{/if}
 					{#if post.comments.length > 0}
 						<strong>Kommentek:</strong>
@@ -102,6 +134,7 @@
 							{/each}
 						</ul>
 					{:else}
+						<br />
 						<em>Még nincsenek kommentek.</em>
 						<br />
 					{/if}
@@ -211,6 +244,12 @@
 
 	.comments li {
 		margin-bottom: 0.5rem;
+	}
+
+	.post-labels {
+		margin-top: 0.5rem;
+		font-size: 0.9rem;
+		color: #555;
 	}
 
 	@media (max-width: 800px) {

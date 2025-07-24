@@ -43,6 +43,7 @@
 		"@auth/core": "^0.38.0",
 		"@auth/sveltekit": "^1.8.0",
 		"axios": "^1.8.4",
+		"lucide-svelte": "^0.525.0",
 		"svelte-spa-router": "^4.0.1"
 	}
 }

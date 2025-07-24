@@ -5,14 +5,16 @@
 	import { logout } from '$lib/logout';
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/Nexus_white.png';
+	import MultiSelect from '$lib/components/MultiSelect.svelte';
 
 	type Group = {
-		group_id: number;
+		id: number;
 		name: string;
 	};
 
 	let title: string = $state('');
 	let content: string = $state('');
+	let labels: string[] = $state([]);
 	let files: any[] = $state([]);
 	let videoLink: string = $state('');
 	let userName: string = '';
@@ -20,9 +22,6 @@
 	let selectedGroups: Group[] = $state([]);
 	let isPublic = $state(false);
 	let theme = $state('light');
-
-	// files értékének kiíratása konzolba, ha frissül
-	// $inspect(files);
 
 	onMount(async () => {
 		const storedTheme = localStorage.getItem('theme');
@@ -68,19 +67,32 @@
 		} else {
 			try {
 				const formData = new FormData();
-				console.log('files a formData.append előtt (itt még megvan a fájl): ', files);
-				formData.append('files', files[0]);
-				console.log('formData az api.post előtt (ide már nem kerül rá a fájl): ', formData);
-				const selectedGroupIds = selectedGroups.map((g) => g.group_id);
-				await api.post('/posts', {
-					title,
-					content,
-					userName,
-					isPublic,
-					selectedGroupIds,
-					videoLink,
-					files
+				formData.append('title', title);
+				formData.append('content', content);
+				formData.append('isPublic', JSON.stringify(isPublic)); // boolean -> string
+				formData.append('labels', JSON.stringify(labels)); // string[] -> JSON string
+				formData.append('userName', userName);
+				formData.append('videoLink', videoLink);
+
+				// Több fájl esetén minden fájl hozzáadása
+				files.forEach((file) => {
+					formData.append('files', file);
 				});
+
+				selectedGroups.forEach((group) => {
+					formData.append('selectedGroupIds', group.id.toString());
+				});
+
+				console.log('formData tartalma:', formData);
+
+				// Multipart/form-data formátumban küldjük a fájlokat és a mezőket is,
+				// nem JSON formátumban (mert egyébként a fájl tömb nem fájlként lesz értelmezve)
+				await api.post('/posts', formData, {
+					headers: {
+						'Content-Type': 'multipart/form-data'
+					}
+				});
+
 				alert('Poszt létrehozva');
 				goto('/home');
 			} catch (e: any) {
@@ -130,6 +142,7 @@
 	<form on:submit|preventDefault={createPost}>
 		<input bind:value={title} placeholder="Cím" />
 		<textarea bind:value={content} placeholder="Tartalom"></textarea>
+		<MultiSelect bind:tags={labels} />
 		<input
 			type="file"
 			multiple
@@ -169,7 +182,6 @@
 		<button class="btn" type="submit">Poszt létrehozása</button>
 	</form>
 </div>
-S
 
 <style>
 	@import '../new_post_comment.css';
