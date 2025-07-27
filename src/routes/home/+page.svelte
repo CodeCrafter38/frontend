@@ -5,9 +5,25 @@
 	import api from '$lib/api';
 	import logo from '$lib/assets/Nexus_white.png';
 
+	type Group = {
+		id: number;
+		name: string;
+	};
+
+	type mapGroupsToPosts = {
+		groupId: number;
+		postIds: number[];
+	};
+
 	let posts: any = [];
-	let userName = '';
-	let theme = 'light';
+	let userGroups: Group[] = [];
+	let groupIdsWithPostIds: mapGroupsToPosts[] = [];
+	let userName: string = '';
+	let userRole: string = '';
+	let theme: string = 'light';
+	let searchTerm: string = '';
+
+	let selectedGroups: number[] = [];
 
 	onMount(async () => {
 		// Téma betöltése a localStorage-ból
@@ -20,7 +36,8 @@
 		// Felhasználó authentikáció ellenőrzése
 		try {
 			const user = await getUserStatus();
-			userName = user.data.user;
+			userName = user.data.user.username;
+			userRole = user.data.user.role;
 			loadPosts();
 		} catch {
 			alert('Sikertelen azonosítás!');
@@ -41,7 +58,14 @@
 
 	const loadPosts = async () => {
 		const fetchedPosts = await api.get(`/posts?username=${userName}`);
-		posts = fetchedPosts.data;
+		const postsAndUserGroups = fetchedPosts.data;
+		posts = postsAndUserGroups.resultPosts;
+		userGroups = postsAndUserGroups.groupsOfUser;
+		groupIdsWithPostIds = postsAndUserGroups.groupIdsWithPostIds;
+		console.log('fetched posts:', fetchedPosts);
+		console.log('Posts:', posts);
+		console.log('userGroups:', userGroups);
+		console.log('groupIdsWithPostIds:', groupIdsWithPostIds);
 	};
 
 	async function onLogout() {
@@ -56,6 +80,37 @@
 
 	function onNewPost() {
 		goto('/new-post');
+	}
+
+	async function onDeletePost(id: number) {
+		await api.delete(`/posts?id=${id}`);
+		loadPosts();
+	}
+
+	async function onDeleteComment(id: number) {
+		await api.delete(`/comments?id=${id}`);
+		loadPosts();
+	}
+
+	function searchInPosts(post: any, searchTerm: string) {
+		if (!searchTerm) return true;
+		const term = searchTerm.trim().toLowerCase();
+		if (!term) return true;
+		return (
+			post.title.toLowerCase().includes(term) ||
+			post.content.toLowerCase().includes(term) ||
+			(Array.isArray(post.labels) &&
+				post.labels.some((label: any) => String(label).toLowerCase().includes(term))) ||
+			(post.comments.length > 0 &&
+				post.comments.some((comment: any) => comment.content.toLowerCase().includes(term)))
+		);
+	}
+
+	function filterByGroups(post: any, selected: number[]) {
+		if (!selected.length) return true;
+		return groupIdsWithPostIds
+			.filter((g) => selected.includes(g.groupId))
+			.some((g) => g.postIds.includes(post.id));
 	}
 </script>
 
@@ -81,10 +136,32 @@
 	<div class="content">
 		<h1>Posztok</h1>
 		<br />
+		<div class="search-container" style="margin-bottom: 1rem;">
+			<input
+				type="text"
+				placeholder="Keresés cím, szöveg vagy címke alapján"
+				bind:value={searchTerm}
+				class="search-input"
+				style="width: 300px; padding: 0.5rem; font-size: 1rem;"
+			/>
+		</div>
+		{#if userGroups.length > 0}
+			<h3>Szűrés csoportok alapján</h3>
+			<div style="margin-bottom: 1rem; display: flex; gap: 2rem;">
+				{#each userGroups as group}
+					<label style="display: flex; align-items: center; gap: 0.3em;">
+						<input type="checkbox" bind:group={selectedGroups} value={group.id} />
+						<span>{group.name}</span>
+					</label>
+				{/each}
+			</div>
+			<br />
+		{/if}
 		{#if posts.length === 0}
 			<p>Még nincsenek posztok.</p>
 		{:else}
-			{#each posts as post}
+			<!-- {#each posts as post} -->
+			{#each posts.filter((post: any) => searchInPosts(post, searchTerm) && filterByGroups(post, selectedGroups)) as post}
 				<div class="post">
 					<h3>{post.title}</h3>
 					<div class="post-content">{post.content}</div>
@@ -131,6 +208,15 @@
 						<ul class="comments">
 							{#each post.comments as comment}
 								<li>{comment.content}</li>
+								{#if userRole === 'ADMIN'}
+									<button
+										style="margin-bottom: 20px;"
+										class="btn"
+										on:click={() => onDeleteComment(comment.id)}
+									>
+										Komment törlése
+									</button>
+								{/if}
 							{/each}
 						</ul>
 					{:else}
@@ -140,6 +226,11 @@
 					{/if}
 					<br />
 					<a href={`/comment?postId=${post.id}`} class="btn">Hozzászólok</a>
+					{#if userRole === 'ADMIN'}
+						<button style="margin-left: 10px;" class="btn" on:click={() => onDeletePost(post.id)}>
+							Poszt törlése
+						</button>
+					{/if}
 				</div>
 			{/each}
 		{/if}

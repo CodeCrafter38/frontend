@@ -32,7 +32,7 @@
 
 		try {
 			const user = await getUserStatus();
-			userName = user.data.user;
+			userName = user.data.user.username;
 		} catch {
 			alert('Sikertelen azonosítás!');
 			goto('/login');
