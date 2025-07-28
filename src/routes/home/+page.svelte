@@ -59,7 +59,7 @@
 	const loadPosts = async () => {
 		const fetchedPosts = await api.get(`/posts?username=${userName}`);
 		const postsAndUserGroups = fetchedPosts.data;
-		posts = postsAndUserGroups.resultPosts;
+		posts = postsAndUserGroups.readyPosts;
 		userGroups = postsAndUserGroups.groupsOfUser;
 		groupIdsWithPostIds = postsAndUserGroups.groupIdsWithPostIds;
 		console.log('fetched posts:', fetchedPosts);
@@ -85,6 +85,10 @@
 	async function onDeletePost(id: number) {
 		await api.delete(`/posts?id=${id}`);
 		loadPosts();
+	}
+
+	async function onAddComment(id: number) {
+		goto(`/comment?postId=${id}`);
 	}
 
 	async function onDeleteComment(id: number) {
@@ -164,6 +168,12 @@
 			{#each posts.filter((post: any) => searchInPosts(post, searchTerm) && filterByGroups(post, selectedGroups)) as post}
 				<div class="post">
 					<h3>{post.title}</h3>
+					<strong>Szerző: {post.username}</strong>
+					<div
+						style="display: flex; justify-content: flex-end; margin-left: auto; margin-bottom: 10px;"
+					>
+						{post.created_at.replace(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/, '$1 $2')}
+					</div>
 					<div class="post-content">{post.content}</div>
 					{#if post.video_link}
 						<!-- a megadott target és a rel attribútumok megakadályozzák, hogy a belinkelt oldal
@@ -181,6 +191,9 @@
 						</p>
 					{/if}
 					{#if post.files !== null && post.files.length > 0}
+						<strong>Fájlok:</strong>
+						<br />
+						<br />
 						{#each post.files as file}
 							{#if file.mimetype?.startsWith('image/')}
 								<img
@@ -188,11 +201,14 @@
 									alt="Kép"
 									width="200"
 								/>
+								<br />
 							{:else}
 								<a
 									href={`http://localhost:4000/api/files?filename=${file.filename}`}
 									target="_blank">{file.filename}</a
 								>
+								<br />
+								<br />
 							{/if}
 						{/each}
 					{/if}
@@ -207,16 +223,26 @@
 						<strong>Kommentek:</strong>
 						<ul class="comments">
 							{#each post.comments as comment}
-								<li>{comment.content}</li>
-								{#if userRole === 'ADMIN'}
-									<button
-										style="margin-bottom: 20px;"
-										class="btn"
-										on:click={() => onDeleteComment(comment.id)}
-									>
-										Komment törlése
-									</button>
-								{/if}
+								<div style="display: flex; flex-direction: column; margin-bottom: 10px;">
+									<div style="justify-content: flex-start; margin-right: auto">
+										<strong>Szerző: {comment.username}</strong>
+									</div>
+									<li style="display: flex; flex-direction: column; margin-bottom: 10px;">
+										<div style="justify-content: flex-end; margin-left: auto; margin-bottom: 10px;">
+											{comment.created_at.replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}).*$/, '$1')}
+										</div>
+										{comment.content}
+										{#if userRole === 'ADMIN'}
+											<button
+												style="justify-content: flex-end; margin-left: auto;"
+												class="btn"
+												on:click={() => onDeleteComment(comment.id)}
+											>
+												Komment törlése
+											</button>
+										{/if}
+									</li>
+								</div>
 							{/each}
 						</ul>
 					{:else}
@@ -225,7 +251,7 @@
 						<br />
 					{/if}
 					<br />
-					<a href={`/comment?postId=${post.id}`} class="btn">Hozzászólok</a>
+					<button class="btn" on:click={() => onAddComment(post.id)}> Hozzászólok </button>
 					{#if userRole === 'ADMIN'}
 						<button style="margin-left: 10px;" class="btn" on:click={() => onDeletePost(post.id)}>
 							Poszt törlése
@@ -331,6 +357,7 @@
 		list-style-type: disc;
 		padding-left: 1.5rem;
 		margin-top: 0.5rem;
+		margin-bottom: 3rem;
 	}
 
 	.comments li {
