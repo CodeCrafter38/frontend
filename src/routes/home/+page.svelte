@@ -22,8 +22,12 @@
 	let userRole: string = '';
 	let theme: string = 'light';
 	let searchTerm: string = '';
-
 	let selectedGroups: number[] = [];
+	let now = Date.now();
+
+	setInterval(() => {
+		now = Date.now();
+	}, 1000);
 
 	onMount(async () => {
 		// Téma betöltése a localStorage-ból
@@ -96,8 +100,12 @@
 	}
 
 	async function onDeleteComment(id: number) {
-		await api.delete(`/comments?id=${id}`);
-		loadPosts();
+		const commentDeleted = await api.delete(`/comments?id=${id}`);
+		if (commentDeleted.status === 204) {
+			loadPosts();
+		} else {
+			alert('A kommentet már nem lehet törölni!');
+		}
 	}
 
 	function searchInPosts(post: any, searchTerm: string) {
@@ -237,7 +245,7 @@
 											{comment.created_at.replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}).*$/, '$1')}
 										</div>
 										{comment.content}
-										{#if userRole === 'ADMIN'}
+										{#if now - new Date(comment.created_at).getTime() < 60000 || userRole === 'ADMIN'}
 											<button
 												style="justify-content: flex-end; margin-left: auto;"
 												class="btn"

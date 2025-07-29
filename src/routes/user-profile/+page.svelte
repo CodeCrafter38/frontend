@@ -98,6 +98,58 @@
 		document.body.classList.add(theme);
 	}
 
+	async function addUsersToGroup(groupName: string, usersToAdd: string[], groupIndex: number) {
+		if (groupName === '' || usersToAdd.length === 0) {
+			alert('Kötelező csoportnevet és új tagot megadni!');
+		} else {
+			try {
+				await api.post(
+					'/groups/users-to-group',
+					{
+						groupName: groupName,
+						usersToAdd: usersToAdd
+					},
+					{
+						headers: {
+							'Content-Type': 'application/json'
+						}
+					}
+				);
+
+				alert('Felhasználók csoporthoz rendelése sikeres!');
+				newMembersByGroupArray[groupIndex].members = [];
+				await refreshGroupMembers();
+			} catch (e: any) {
+				alert(e.response?.data?.msg || 'Felhasználók csoporthoz rendelése sikertelen!');
+			}
+		}
+	}
+
+	async function removeUserFromGroup(groupName: string, userId: number) {
+		try {
+			await api.delete(`/groups/users-from-group?groupName=${groupName}&userId=${userId}`);
+
+			alert('Felhasználó eltávolítva a csoportból!');
+			await refreshGroupMembers();
+		} catch (e: any) {
+			alert(e.response?.data?.msg || 'Felhasználó eltávolítása a csoportból sikertelen!');
+		}
+	}
+
+	async function refreshGroupMembers() {
+		groupMappings.length = 0;
+		availableGroups.forEach(async (group: any) => {
+			const usersOfGroup = await api.get(`/users/ofGroup?groupId=${group.id}`);
+			console.log('usersOfGroup: ', usersOfGroup);
+			groupMappings.push({
+				groupName: group.name,
+				description: group.description,
+				members: usersOfGroup.data
+			});
+			console.log('groupMappings after refresh: ', groupMappings);
+		});
+	}
+
 	async function onLogout() {
 		try {
 			await logout();
@@ -128,16 +180,6 @@
 			newMembersByGroupArray.push(newMemberObject);
 		});
 		console.log('newMembersByGroupArray: ', newMembersByGroupArray);
-	}
-
-	async function addUsersToGroup(groupName: string, usersToAdd: string[]) {
-		await modifyGroupUsers(groupName, usersToAdd);
-		alert('User hozzáadva');
-	}
-
-	async function removeUserFromGroup(groupName: string, userId: number) {
-		await modifyGroupUsers(groupName, userId);
-		alert('User eltávolítva');
 	}
 </script>
 
@@ -182,8 +224,9 @@
 								{#if userRole === 'TEACHER' || userRole === 'ADMIN'}
 									<button
 										class="btn"
+										style="width: 70px"
 										on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
-										>Kidobás</button
+										>{member.username !== userName ? 'Kidobás' : 'Kilépés'}</button
 									>
 								{/if}
 							</li>
@@ -191,15 +234,16 @@
 						{/each}
 					</ul>
 				{/if}
-				<h4>Új tagok hozzáadásához írd be a mezőbe az új tagok felhasználónevét:</h4>
+				<h4>Új tagok hozzáadásához írd be a lenti mezőbe az új tagok felhasználónevét:</h4>
 				<MultiSelect
 					bind:tags={newMembersByGroupArray[i].members}
 					placeholder="Új tagok hozzáadása..."
 				/>
 				<button
+					class="btn"
 					style="width: 30%"
-					on:click={() => addUsersToGroup(mapping.groupName, newMembersByGroupArray[i].members)}
-					disabled={![...newMembersByGroupArray[i].members].length}
+					on:click={() => addUsersToGroup(mapping.groupName, newMembersByGroupArray[i].members, i)}
+					disabled={!newMembersByGroupArray[i].members?.length}
 				>
 					Tag/tagok hozzáadása
 				</button>

@@ -62,7 +62,7 @@
 					}
 				);
 
-				alert('Csoport lérehozva!');
+				alert('Csoport létrehozva!');
 				goto('/user-profile');
 			} catch (e: any) {
 				alert(e.response?.data?.msg || 'Csoport létrehozása sikertelen!');
