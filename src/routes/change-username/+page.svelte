@@ -6,10 +6,8 @@
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/Nexus_white.png';
 
-	let username: string = $state('');
-	let oldPassword: string = $state('');
-	let newPassword: string = $state('');
-	let newPasswordSecond: string = $state('');
+	let oldUsername: string = $state('');
+	let newUsername: string = $state('');
 	let theme = $state('light');
 
 	onMount(async () => {
@@ -21,7 +19,7 @@
 
 		try {
 			const user = await getUserStatus();
-			username = user.data.user.username;
+			oldUsername = user.data.user.username;
 		} catch {
 			alert('Sikertelen azonosítás!');
 			goto('/login');
@@ -39,21 +37,16 @@
 		document.body.classList.add(theme);
 	}
 
-	async function changePassword() {
-		if (oldPassword === '' || newPassword === '' || newPasswordSecond === '') {
+	async function changeUsername() {
+		if (oldUsername === '' || newUsername === '') {
 			alert('Minden mezőt kötelező kitölteni!');
-		} else if (newPassword !== newPasswordSecond) {
-			alert('Az új jelszavak nem egyeznek!');
-		} else if (newPassword.length < 8) {
-			alert('Az új jelszónak legalább 8 karakter hosszúnak kell lennie!');
 		} else {
 			try {
 				await api.post(
-					'/change-password',
+					'/change-username',
 					{
-						username: username,
-						oldPassword: oldPassword,
-						newPassword: newPassword
+						oldUsername: oldUsername,
+						newUsername: newUsername
 					},
 					{
 						headers: {
@@ -62,10 +55,10 @@
 					}
 				);
 
-				alert('Jelszó módosítva!');
+				alert('Felhasználónév módosítva!');
 				goto('/user-profile');
 			} catch (e: any) {
-				alert(e.response?.data?.msg || 'Jelszó módosítása sikertelen!');
+				alert(e.response?.data?.msg || 'Felhasználónév módosítása sikertelen!');
 			}
 		}
 	}
@@ -100,11 +93,10 @@
 </div>
 
 <div class="content-pane">
-	<h1>Jelszó módosítása</h1>
-	<form on:submit|preventDefault={changePassword}>
-		<input type="password" bind:value={oldPassword} placeholder="Régi jelszó" />
-		<input type="password" bind:value={newPassword} placeholder="Új jelszó" />
-		<input type="password" bind:value={newPasswordSecond} placeholder="Új jelszó másodszor" />
+	<h1>Felhasználónév módosítása</h1>
+	<form on:submit|preventDefault={changeUsername}>
+		<input bind:value={oldUsername} placeholder="Régi felhasználónév" />
+		<input bind:value={newUsername} placeholder="Új felhasználónév" />
 		<button class="btn" type="submit">Módosítás</button>
 	</form>
 </div>

@@ -142,7 +142,7 @@
 	<form on:submit|preventDefault={createPost}>
 		<input bind:value={title} placeholder="Cím" />
 		<textarea bind:value={content} placeholder="Tartalom"></textarea>
-		<MultiSelect bind:tags={labels} />
+		<MultiSelect bind:tags={labels} placeholder="Címke hozzáadása..." />
 		<input
 			type="file"
 			multiple
@@ -184,5 +184,6 @@
 </div>
 
 <style>
+	@import '../../app.css';
 	@import '../new_post_comment.css';
 </style>

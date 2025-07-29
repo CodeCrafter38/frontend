@@ -82,6 +82,10 @@
 		goto('/new-post');
 	}
 
+	function onProfilePage() {
+		goto('/user-profile');
+	}
+
 	async function onDeletePost(id: number) {
 		await api.delete(`/posts?id=${id}`);
 		loadPosts();
@@ -132,6 +136,7 @@
 		<h2>Üdv a Nexusban, {userName}!</h2>
 		<p>Itt megtekintheted a számodra látható posztokat és hozzászólhatsz.</p>
 		<div class="actions">
+			<button class="btn" on:click={onProfilePage}>Felhasználói profil</button>
 			<button class="btn" on:click={onNewPost}>Új poszt</button>
 			<button class="btn" on:click={onLogout}>Kijelentkezés</button>
 		</div>

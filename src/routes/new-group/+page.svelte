@@ -5,11 +5,16 @@
 	import { logout } from '$lib/logout';
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/Nexus_white.png';
+	import MultiSelect from '$lib/components/MultiSelect.svelte';
 
-	let username: string = $state('');
-	let oldPassword: string = $state('');
-	let newPassword: string = $state('');
-	let newPasswordSecond: string = $state('');
+	type Group = {
+		id: number;
+		name: string;
+	};
+
+	let name: string = $state('');
+	let description: string = $state('');
+	let username: string = '';
 	let theme = $state('light');
 
 	onMount(async () => {
@@ -39,21 +44,16 @@
 		document.body.classList.add(theme);
 	}
 
-	async function changePassword() {
-		if (oldPassword === '' || newPassword === '' || newPasswordSecond === '') {
+	async function createGroup() {
+		if (name === '' || description === '') {
 			alert('Minden mezőt kötelező kitölteni!');
-		} else if (newPassword !== newPasswordSecond) {
-			alert('Az új jelszavak nem egyeznek!');
-		} else if (newPassword.length < 8) {
-			alert('Az új jelszónak legalább 8 karakter hosszúnak kell lennie!');
 		} else {
 			try {
 				await api.post(
-					'/change-password',
+					'/groups/create',
 					{
-						username: username,
-						oldPassword: oldPassword,
-						newPassword: newPassword
+						name: name,
+						description: description
 					},
 					{
 						headers: {
@@ -62,10 +62,10 @@
 					}
 				);
 
-				alert('Jelszó módosítva!');
+				alert('Csoport lérehozva!');
 				goto('/user-profile');
 			} catch (e: any) {
-				alert(e.response?.data?.msg || 'Jelszó módosítása sikertelen!');
+				alert(e.response?.data?.msg || 'Csoport létrehozása sikertelen!');
 			}
 		}
 	}
@@ -100,12 +100,12 @@
 </div>
 
 <div class="content-pane">
-	<h1>Jelszó módosítása</h1>
-	<form on:submit|preventDefault={changePassword}>
-		<input type="password" bind:value={oldPassword} placeholder="Régi jelszó" />
-		<input type="password" bind:value={newPassword} placeholder="Új jelszó" />
-		<input type="password" bind:value={newPasswordSecond} placeholder="Új jelszó másodszor" />
-		<button class="btn" type="submit">Módosítás</button>
+	<h1>Új csoport létrehozása</h1>
+	<form on:submit|preventDefault={createGroup}>
+		<input bind:value={name} placeholder="Csoport neve" />
+		<textarea bind:value={description} placeholder="Csoport leírása"></textarea>
+
+		<button class="btn" type="submit">Csoport létrehozása</button>
 	</form>
 </div>
 

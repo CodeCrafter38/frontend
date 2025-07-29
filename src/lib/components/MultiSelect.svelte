@@ -2,6 +2,7 @@
 	import { Trash2 } from 'lucide-svelte';
 
 	export let tags: string[] = [];
+	export let placeholder: string = '';
 	let inputValue: string = '';
 	let error: string = '';
 
@@ -51,7 +52,7 @@
 		bind:value={inputValue}
 		on:keydown={handleKeyDown}
 		on:blur={handleBlur}
-		placeholder="Címke hozzáadása..."
+		{placeholder}
 	/>
 </div>
 
