@@ -15,6 +15,7 @@
 	type User = {
 		id: number;
 		username: string;
+		role: string;
 	};
 
 	type GroupMapping = {
@@ -220,12 +221,19 @@
 						{#each mapping.members as member}
 							{member.username}
 							<li style="justify-content: flex-end; margin-left: auto;">
-								{#if userRole === 'TEACHER' || userRole === 'ADMIN'}
+								{#if userRole === 'TEACHER' && member.username !== userName && member.role !== 'ADMIN'}
 									<button
 										class="btn"
 										style="width: 70px"
 										on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
-										>{member.username !== userName ? 'Kidobás' : 'Kilépés'}</button
+										>{member.username !== userName && 'Kidobás'}</button
+									>
+								{:else if userRole === 'ADMIN' && member.username !== userName}
+									<button
+										class="btn"
+										style="width: 70px"
+										on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
+										>{member.username !== userName && 'Kidobás'}</button
 									>
 								{/if}
 							</li>
@@ -233,19 +241,22 @@
 						{/each}
 					</ul>
 				{/if}
-				<h4>Új tagok hozzáadásához írd be a lenti mezőbe az új tagok felhasználónevét:</h4>
-				<MultiSelect
-					bind:tags={newMembersByGroupArray[i].members}
-					placeholder="Új tagok hozzáadása..."
-				/>
-				<button
-					class="btn"
-					style="width: 30%"
-					on:click={() => addUsersToGroup(mapping.groupName, newMembersByGroupArray[i].members, i)}
-					disabled={!newMembersByGroupArray[i].members?.length}
-				>
-					Tag/tagok hozzáadása
-				</button>
+				{#if userRole !== 'STUDENT'}
+					<h4>Új tagok hozzáadásához írd be a lenti mezőbe az új tagok felhasználónevét:</h4>
+					<MultiSelect
+						bind:tags={newMembersByGroupArray[i].members}
+						placeholder="Új tagok hozzáadása..."
+					/>
+					<button
+						class="btn"
+						style="width: 30%"
+						on:click={() =>
+							addUsersToGroup(mapping.groupName, newMembersByGroupArray[i].members, i)}
+						disabled={!newMembersByGroupArray[i].members?.length}
+					>
+						Tag/tagok hozzáadása
+					</button>
+				{/if}
 			</div>
 		{/each}
 	</main>
