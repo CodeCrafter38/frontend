@@ -63,7 +63,6 @@
 				groupsOfUser.data.forEach((group: any) => {
 					availableGroups.push(group);
 				});
-				console.log('availableGroups: ', availableGroups);
 			}
 		} catch {
 			alert('Csoportok lekérdezése sikertelen!');

@@ -17,11 +17,14 @@
 	let labels: string[] = $state([]);
 	let files: any[] = $state([]);
 	let videoLink: string = $state('');
-	let userName: string = '';
+	let userName: string = $state('');
+	let userRole: string = $state('');
 	let availableGroups: Group[] = $state([]);
 	let selectedGroups: Group[] = $state([]);
 	let isPublic = $state(false);
 	let theme = $state('light');
+
+	let isUserLoaded = $state(false);
 
 	onMount(async () => {
 		const storedTheme = localStorage.getItem('theme');
@@ -33,16 +36,26 @@
 		try {
 			const user = await getUserStatus();
 			userName = user.data.user.username;
+			userRole = user.data.user.role;
+			isUserLoaded = true;
 		} catch {
 			alert('Sikertelen azonosítás!');
 			goto('/login');
 		}
 
 		try {
-			const groupsOfUser = await api.get(`/groups/ofUser?username=${userName}`);
-			groupsOfUser.data.forEach((group: any) => {
-				availableGroups.push(group);
-			});
+			if (userRole === 'ADMIN') {
+				const groupsOfAdmin = await api.get('/groups/all');
+				groupsOfAdmin.data.forEach((group: any) => {
+					availableGroups.push(group);
+				});
+				console.log('availableGroups: ', availableGroups);
+			} else {
+				const groupsOfUser = await api.get(`/groups/ofUser?username=${userName}`);
+				groupsOfUser.data.forEach((group: any) => {
+					availableGroups.push(group);
+				});
+			}
 		} catch {
 			alert('Csoportok lekérdezése sikertelen!');
 		}
@@ -60,6 +73,9 @@
 	}
 
 	async function createPost() {
+		if (userRole === 'STUDENT') {
+			isPublic = true;
+		}
 		if (title === '' || content === '') {
 			alert('A címet és a tartalmat kötelező kitölteni!');
 		} else if (selectedGroups.length == 0 && !isPublic) {
@@ -152,7 +168,11 @@
 		/>
 		<input type="url" bind:value={videoLink} placeholder="Youtube link helye" />
 
-		{#if availableGroups.length}
+		{#if !isUserLoaded}
+			<p>Betöltés...</p>
+		{:else if userRole === 'STUDENT'}
+			<p>A létrehozott poszt publikus lesz.</p>
+		{:else if availableGroups.length}
 			<label>
 				<input type="checkbox" bind:checked={isPublic} />
 				Nyilvános
