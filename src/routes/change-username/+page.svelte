@@ -1,3 +1,4 @@
+<!-- change username page -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
@@ -6,24 +7,24 @@
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/Nexus_white.png';
 
+	let user = null;
 	let oldUsername: string = $state('');
 	let newUsername: string = $state('');
 	let theme = $state('light');
 
 	onMount(async () => {
+		// Felhasználó authentikáció ellenőrzése
+		user = await getUserStatus();
+		if (!user) {
+			goto('/login');
+		}
+
+		// Téma betöltése a localStorage-ból
 		const storedTheme = localStorage.getItem('theme');
 		if (storedTheme) {
 			theme = storedTheme;
 		}
 		updateBodyClass();
-
-		try {
-			const user = await getUserStatus();
-			oldUsername = user.data.user.username;
-		} catch {
-			alert('Sikertelen azonosítás!');
-			goto('/login');
-		}
 	});
 
 	function toggleTheme() {

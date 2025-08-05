@@ -1,3 +1,4 @@
+<!-- new group page -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
@@ -12,25 +13,24 @@
 		name: string;
 	};
 
+	let user = null;
 	let name: string = $state('');
 	let description: string = $state('');
-	let username: string = '';
 	let theme = $state('light');
 
 	onMount(async () => {
+		// Felhasználó authentikáció ellenőrzése
+		user = await getUserStatus();
+		if (!user) {
+			goto('/login');
+		}
+
+		// Téma betöltése a localStorage-ból
 		const storedTheme = localStorage.getItem('theme');
 		if (storedTheme) {
 			theme = storedTheme;
 		}
 		updateBodyClass();
-
-		try {
-			const user = await getUserStatus();
-			username = user.data.user.username;
-		} catch {
-			alert('Sikertelen azonosítás!');
-			goto('/login');
-		}
 	});
 
 	function toggleTheme() {

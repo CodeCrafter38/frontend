@@ -1,3 +1,4 @@
+<!-- signup page -->
 <script>
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';

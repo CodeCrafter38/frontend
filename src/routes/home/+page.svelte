@@ -1,3 +1,4 @@
+<!-- home page -->
 <script lang="ts">
 	import { goto, invalidate } from '$app/navigation';
 	import { getUserStatus } from '$lib/auth';
@@ -15,21 +16,30 @@
 		postIds: number[];
 	};
 
-	let posts: any = [];
-	let userGroups: Group[] = [];
+	let user = null;
+	let posts: any = $state([]);
+	let userGroups: Group[] = $state([]);
 	let groupIdsWithPostIds: mapGroupsToPosts[] = [];
-	let userName: string = '';
-	let userRole: string = '';
-	let theme: string = 'light';
-	let searchTerm: string = '';
-	let selectedGroups: number[] = [];
-	let now = Date.now();
+	let userName: string = $state('');
+	let userRole: string = $state('');
+	let theme: string = $state('light');
+	let searchTerm: string = $state('');
+	let selectedGroups: number[] = $state([]);
+	let now = $state(Date.now());
 
 	setInterval(() => {
 		now = Date.now();
 	}, 1000);
 
 	onMount(async () => {
+		// Felhasználó authentikáció ellenőrzése
+		user = await getUserStatus();
+		if (!user) {
+			goto('/login');
+		}
+		userName = user.username;
+		userRole = user.role;
+
 		// Téma betöltése a localStorage-ból
 		const storedTheme = localStorage.getItem('theme');
 		if (storedTheme) {
@@ -37,16 +47,7 @@
 		}
 		updateBodyClass();
 
-		// Felhasználó authentikáció ellenőrzése
-		try {
-			const user = await getUserStatus();
-			userName = user.data.user.username;
-			userRole = user.data.user.role;
-			loadPosts();
-		} catch {
-			alert('Sikertelen azonosítás!');
-			goto('/login');
-		}
+		loadPosts();
 	});
 
 	function toggleTheme() {

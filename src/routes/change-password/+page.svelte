@@ -1,3 +1,4 @@
+<!-- change password page -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
@@ -6,26 +7,25 @@
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/Nexus_white.png';
 
-	let username: string = $state('');
+	let user = null;
 	let oldPassword: string = $state('');
 	let newPassword: string = $state('');
 	let newPasswordSecond: string = $state('');
-	let theme = $state('light');
+	let theme: string = $state('light');
 
 	onMount(async () => {
+		// Felhasználó authentikáció ellenőrzése
+		user = await getUserStatus();
+		if (!user) {
+			goto('/login');
+		}
+
+		// Téma betöltése a localStorage-ból
 		const storedTheme = localStorage.getItem('theme');
 		if (storedTheme) {
 			theme = storedTheme;
 		}
 		updateBodyClass();
-
-		try {
-			const user = await getUserStatus();
-			username = user.data.user.username;
-		} catch {
-			alert('Sikertelen azonosítás!');
-			goto('/login');
-		}
 	});
 
 	function toggleTheme() {
@@ -51,7 +51,6 @@
 				await api.post(
 					'/change-password',
 					{
-						username: username,
 						oldPassword: oldPassword,
 						newPassword: newPassword
 					},

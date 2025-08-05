@@ -1,3 +1,4 @@
+<!-- comment page -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
@@ -7,26 +8,25 @@
 	import { page } from '$app/state';
 	import logo from '$lib/assets/Nexus_white.png';
 
+	let user = null;
 	let content: string = $state('');
-	let userName: string = '';
 	let theme = $state('light');
 
 	const postId = page.url.searchParams.get('postId');
 
 	onMount(async () => {
+		// Felhasználó authentikáció ellenőrzése
+		user = await getUserStatus();
+		if (!user) {
+			goto('/login');
+		}
+
+		// Téma betöltése a localStorage-ból
 		const storedTheme = localStorage.getItem('theme');
 		if (storedTheme) {
 			theme = storedTheme;
 		}
 		updateBodyClass();
-
-		try {
-			const user = await getUserStatus();
-			userName = user.data.user.username;
-		} catch (e: any) {
-			alert('Sikertelen azonosítás!');
-			goto('/login');
-		}
 	});
 
 	function toggleTheme() {
@@ -45,7 +45,7 @@
 			alert('A komment tartalmát kötelező kitölteni!');
 		} else {
 			try {
-				await api.post('/comments', { postId, userName, content });
+				await api.post('/comments', { postId, content });
 				alert('Sikeres komment beküldés');
 				goto('/home');
 			} catch (e: any) {

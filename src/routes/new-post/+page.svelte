@@ -1,3 +1,4 @@
+<!-- new post page -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
@@ -12,6 +13,7 @@
 		name: string;
 	};
 
+	let user = null;
 	let title: string = $state('');
 	let content: string = $state('');
 	let labels: string[] = $state([]);
@@ -27,21 +29,21 @@
 	let isUserLoaded = $state(false);
 
 	onMount(async () => {
+		// Felhasználó authentikáció ellenőrzése
+		user = await getUserStatus();
+		if (!user) {
+			goto('/login');
+		}
+		userName = user.username;
+		userRole = user.role;
+		isUserLoaded = true;
+
+		// Téma betöltése a localStorage-ból
 		const storedTheme = localStorage.getItem('theme');
 		if (storedTheme) {
 			theme = storedTheme;
 		}
 		updateBodyClass();
-
-		try {
-			const user = await getUserStatus();
-			userName = user.data.user.username;
-			userRole = user.data.user.role;
-			isUserLoaded = true;
-		} catch {
-			alert('Sikertelen azonosítás!');
-			goto('/login');
-		}
 
 		try {
 			if (userRole === 'ADMIN') {

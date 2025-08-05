@@ -1,3 +1,4 @@
+<!-- login page -->
 <script>
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
@@ -35,7 +36,6 @@
 			await api
 				.post('/login', { email, password })
 				.then((response) => {
-					alert('Sikeres bejelentkezés');
 					goto('/home');
 				})
 				.catch((error) => alert('Felhasználónév vagy jelszó nem egyezik!'));

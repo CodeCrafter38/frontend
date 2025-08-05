@@ -1,3 +1,4 @@
+<!-- user profile page -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
@@ -29,28 +30,29 @@
 		members: string[];
 	};
 
+	let user = null;
 	let userName: string = $state('');
 	let userRole: string = $state('');
 	let availableGroups: Group[] = $state([]);
 	let groupMappings: GroupMapping[] = $state([]);
 	let newMembersByGroupArray: NewMembersByGroup[] = $state([]);
-	let theme = $state('light');
+	let theme: string = $state('light');
 
 	onMount(async () => {
+		// Felhasználó authentikáció ellenőrzése
+		user = await getUserStatus();
+		if (!user) {
+			goto('/login');
+		}
+		userName = user.username;
+		userRole = user.role;
+
+		// Téma betöltése a localStorage-ból
 		const storedTheme = localStorage.getItem('theme');
 		if (storedTheme) {
 			theme = storedTheme;
 		}
 		updateBodyClass();
-
-		try {
-			const user = await getUserStatus();
-			userName = user.data.user.username;
-			userRole = user.data.user.role;
-		} catch {
-			alert('Sikertelen azonosítás!');
-			goto('/login');
-		}
 
 		try {
 			if (userRole === 'ADMIN') {
