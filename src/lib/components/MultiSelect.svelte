@@ -73,7 +73,6 @@
 	.tag {
 		display: flex;
 		border: 2px solid var(--color-border);
-		/* background: #e0e0e0; */
 		border-radius: 4px;
 		padding: 2px 6px;
 		font-size: 0.9rem;
@@ -93,16 +92,9 @@
 		align-items: center;
 		color: #f96c06;
 	}
-	.remove-btn svg {
-		display: block;
-	}
 	.multi-select input {
-		/* border: none; */
-		/* outline: none; */
 		flex: 1;
 		min-width: 100px;
-		/* font-size: 1rem; */
-		/* padding: 4px; */
 	}
 	.error {
 		color: red;

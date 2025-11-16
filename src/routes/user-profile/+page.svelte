@@ -211,56 +211,63 @@
 		{:else}
 			<h1>Csoportjaid</h1>
 		{/if}
-		{#each groupMappings as mapping, i}
-			<div class="post">
-				<h3>{mapping.groupName}</h3>
-				<h4><span style="font-weight:normal">Mottó:</span> {mapping.description}</h4>
-				{#if mapping.members.length === 0}
-					<h4>Még nincsenek tagok a csoportban.</h4>
-				{:else}
-					<h4>Tagok:</h4>
-					<ul class="comments" style="display: flex; flex-direction: column; margin-bottom: 10px;">
-						{#each mapping.members as member}
-							{member.username}
-							<li style="justify-content: flex-end; margin-left: auto;">
-								{#if userRole === 'TEACHER' && member.username !== userName && member.role !== 'ADMIN'}
-									<button
-										class="btn"
-										style="width: 70px"
-										on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
-										>{member.username !== userName && 'Kidobás'}</button
-									>
-								{:else if userRole === 'ADMIN' && member.username !== userName}
-									<button
-										class="btn"
-										style="width: 70px"
-										on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
-										>{member.username !== userName && 'Kidobás'}</button
-									>
-								{/if}
-							</li>
-							<br />
-						{/each}
-					</ul>
-				{/if}
-				{#if userRole !== 'STUDENT'}
-					<h4>Új tagok hozzáadásához írd be a lenti mezőbe az új tagok felhasználónevét:</h4>
-					<MultiSelect
-						bind:tags={newMembersByGroupArray[i].members}
-						placeholder="Új tagok hozzáadása..."
-					/>
-					<button
-						class="btn"
-						style="width: 30%"
-						on:click={() =>
-							addUsersToGroup(mapping.groupName, newMembersByGroupArray[i].members, i)}
-						disabled={!newMembersByGroupArray[i].members?.length}
-					>
-						Tag/tagok hozzáadása
-					</button>
-				{/if}
-			</div>
-		{/each}
+		{#if groupMappings.length > 0}
+			{#each groupMappings as mapping, i}
+				<div class="post">
+					<h3>{mapping.groupName}</h3>
+					<h4><span style="font-weight:normal">Mottó:</span> {mapping.description}</h4>
+					{#if mapping.members.length === 0}
+						<h4>Még nincsenek tagok a csoportban.</h4>
+					{:else}
+						<h4>Tagok:</h4>
+						<ul
+							class="comments"
+							style="display: flex; flex-direction: column; margin-bottom: 10px;"
+						>
+							{#each mapping.members as member}
+								{member.username}
+								<li style="justify-content: flex-end; margin-left: auto;">
+									{#if userRole === 'TEACHER' && member.username !== userName && member.role !== 'ADMIN'}
+										<button
+											class="btn"
+											style="width: 70px"
+											on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
+											>{member.username !== userName && 'Kidobás'}</button
+										>
+									{:else if userRole === 'ADMIN' && member.username !== userName}
+										<button
+											class="btn"
+											style="width: 70px"
+											on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
+											>{member.username !== userName && 'Kidobás'}</button
+										>
+									{/if}
+								</li>
+								<br />
+							{/each}
+						</ul>
+					{/if}
+					{#if userRole !== 'STUDENT'}
+						<h4>Új tagok hozzáadásához írd be a lenti mezőbe az új tagok felhasználónevét:</h4>
+						<MultiSelect
+							bind:tags={newMembersByGroupArray[i].members}
+							placeholder="Új tagok hozzáadása..."
+						/>
+						<button
+							class="btn"
+							style="width: 30%"
+							on:click={() =>
+								addUsersToGroup(mapping.groupName, newMembersByGroupArray[i].members, i)}
+							disabled={!newMembersByGroupArray[i].members?.length}
+						>
+							Tag/tagok hozzáadása
+						</button>
+					{/if}
+				</div>
+			{/each}
+		{:else}
+			<h2>Nem vagy benne semmilyen csoportban, csak a publikus posztokat láthatod.</h2>
+		{/if}
 	</main>
 </div>
 

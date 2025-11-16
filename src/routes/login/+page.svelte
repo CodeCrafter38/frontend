@@ -5,6 +5,8 @@
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/Nexus_white.png';
 
+	const BACKEND_URL = 'http://localhost:4000/api';
+
 	let email = '';
 	let password = '';
 	let theme = 'light';
@@ -29,7 +31,7 @@
 		document.body.classList.add(theme);
 	}
 
-	async function login() {
+	async function loginWithEmail() {
 		if (email == '' || password == '') {
 			alert('Minden mezőt kötelező kitölteni!');
 		} else {
@@ -40,6 +42,12 @@
 				})
 				.catch((error) => alert('Felhasználónév vagy jelszó nem egyezik!'));
 		}
+	}
+
+	async function loginWithGoogle() {
+		// Nem fetch, hanem redirect!
+		// window.location.href = `${BACKEND_URL}/google`;
+		window.location.href = 'http://localhost:4000/api/auth/google';
 	}
 </script>
 
@@ -64,10 +72,13 @@
 <div class="right-pane">
 	<h1>Bejelentkezés</h1>
 	<br />
-	<form on:submit|preventDefault={login}>
+	<form on:submit|preventDefault={loginWithEmail}>
 		<input type="text" bind:value={email} placeholder="Email cím" />
 		<input type="password" bind:value={password} placeholder="Jelszó" />
 		<input class="btn" type="submit" value="Bejelentkezés" />
 	</form>
+	<hr />
+	<button on:click={loginWithGoogle}> Belépés Google fiókkal </button>
+	<hr />
 	<a href="/signup">Regisztráció</a>
 </div>
