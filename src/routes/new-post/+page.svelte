@@ -13,11 +13,17 @@
 		name: string;
 	};
 
+	const ALLOWED_EXTENSIONS = ['.doc', '.docx', '.xls', '.xlsx'];
+	const MAX_TOTAL_SIZE_MB = 2;
+	const MAX_TOTAL_SIZE_BYTES = MAX_TOTAL_SIZE_MB * 1024 * 1024;
+
 	let user = null;
 	let title: string = $state('');
 	let content: string = $state('');
 	let labels: string[] = $state([]);
-	let files: any[] = $state([]);
+	let files: File[] = $state([]);
+	let fileError: string = $state('');
+	let fileWarning: string = $state('');
 	let videoLink: string = $state('');
 	let userName: string = $state('');
 	let userRole: string = $state('');
@@ -78,6 +84,17 @@
 		if (userRole === 'STUDENT') {
 			isPublic = true;
 		}
+
+		// aktuális állapot szerinti összes fájlméret ellenőrzés
+		const totalSize = getTotalSize(files);
+		if (totalSize > MAX_TOTAL_SIZE_BYTES) {
+			const totalMB = (totalSize / (1024 * 1024)).toFixed(2);
+			alert(
+				`A csatolt fájlok összmérete (${totalMB} MB) meghaladja a megengedett ${MAX_TOTAL_SIZE_MB} MB-ot. Kérlek, csökkentsd a csatolt fájlok méretét!`
+			);
+			return;
+		}
+
 		if (title === '' || content === '') {
 			alert('A címet és a tartalmat kötelező kitölteni!');
 		} else if (selectedGroups.length == 0 && !isPublic) {
@@ -139,8 +156,104 @@
 		goto('/home');
 	}
 
-	function onFileChange(event: any) {
-		files = Array.from(event.target.files);
+	function onFileChange(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+
+		if (!input || !input.files) {
+			return;
+		}
+
+		const newSelection = Array.from(input.files);
+
+		// újonnan kiválasztottak ellenőrzése
+		const invalidNew = validateFiles(newSelection);
+
+		const validNew = newSelection.filter((file) => {
+			const mimetype = file.type || '';
+			const isImage = mimetype.startsWith('image/');
+
+			const dotIndex = file.name.lastIndexOf('.');
+			const ext = dotIndex !== -1 ? file.name.slice(dotIndex).toLowerCase() : '';
+			const isAllowedDoc = ALLOWED_EXTENSIONS.includes(ext);
+
+			return isImage || isAllowedDoc;
+		});
+
+		// régi + új ÉRVÉNYES fájlok EGYBEN
+		const merged = mergeFiles(files, validNew);
+		files = merged;
+
+		// összméret + hibaüzenet dinamikus frissítése
+		updateFileErrorMessage();
+
+		if (invalidNew.length > 0) {
+			fileWarning =
+				'Az alábbi fájl(ok) típusa nem engedélyezett, ezért nem kerültek csatolásra: ' +
+				invalidNew.join(', ');
+		} else {
+			fileWarning = '';
+		}
+
+		input.value = '';
+	}
+
+	function getTotalSize(fileArray: File[]): number {
+		return fileArray.reduce((sum, f) => sum + f.size, 0);
+	}
+
+	function updateFileErrorMessage() {
+		const totalSize = getTotalSize(files);
+		if (totalSize > MAX_TOTAL_SIZE_BYTES) {
+			const totalMB = (totalSize / (1024 * 1024)).toFixed(2);
+			fileError = `A csatolt fájlok összmérete (${totalMB} MB) meghaladja a megengedett ${MAX_TOTAL_SIZE_MB} MB-ot. Törölj néhány fájlt.`;
+		} else {
+			fileError = '';
+		}
+	}
+
+	// Egymás után lehessen több fájlt választani, és ne duplikáljunk
+	function mergeFiles(existing: File[], incoming: File[]): File[] {
+		const map = new Map<string, File>();
+
+		for (const f of existing) {
+			const key = `${f.name}-${f.size}-${f.lastModified}`;
+			map.set(key, f);
+		}
+
+		for (const f of incoming) {
+			const key = `${f.name}-${f.size}-${f.lastModified}`;
+			if (!map.has(key)) {
+				map.set(key, f);
+			}
+		}
+
+		return Array.from(map.values());
+	}
+
+	function validateFiles(fileList: FileList | File[]): string[] {
+		const invalidFileNames: string[] = [];
+
+		for (const file of Array.from(fileList)) {
+			const mimetype = file.type || '';
+			const isImage = mimetype.startsWith('image/');
+
+			const dotIndex = file.name.lastIndexOf('.');
+			const ext = dotIndex !== -1 ? file.name.slice(dotIndex).toLowerCase() : '';
+			const isAllowedDoc = ALLOWED_EXTENSIONS.includes(ext);
+
+			if (!isImage && !isAllowedDoc) {
+				invalidFileNames.push(file.name);
+			}
+		}
+
+		return invalidFileNames;
+	}
+
+	function removeFile(fileToRemove: File) {
+		files = files.filter((f) => f !== fileToRemove);
+
+		// minden törlés után újraszámoljuk az összméretet és frissítjük a szöveget
+		updateFileErrorMessage();
 	}
 </script>
 
@@ -162,12 +275,38 @@
 		<textarea bind:value={content} placeholder="Tartalom"></textarea>
 		<MultiSelect bind:tags={labels} placeholder="Címke hozzáadása..." />
 		<input
+			id="img"
 			type="file"
 			multiple
 			accept="image/*,.doc,.docx,.xls,.xlsx"
 			placeholder="Fájl helye"
+			style="display:none;"
 			on:change={onFileChange}
 		/>
+		<label class="btn" for="img">Fájlok kiválasztása</label>
+		<br />
+		<span class="file-label-text">
+			{#if files.length}
+				{#each files as file}
+					<span class="file-chip">
+						{file.name}
+						<button type="button" class="file-remove" on:click={() => removeFile(file)}> × </button>
+					</span>
+				{/each}
+			{:else}
+				Nincs fájl kiválasztva
+			{/if}
+		</span>
+		<br />
+
+		{#if fileWarning}
+			<p class="file-warning">{fileWarning}</p>
+		{/if}
+
+		{#if fileError}
+			<p class="file-error">{fileError}</p>
+		{/if}
+
 		<input type="url" bind:value={videoLink} placeholder="Youtube link helye" />
 
 		{#if !isUserLoaded}

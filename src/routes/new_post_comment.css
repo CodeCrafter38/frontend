@@ -107,4 +107,47 @@
 		flex-wrap: wrap;
 		gap: 0.5rem;
 	}
+
+	.file-label-text {
+		font-size: 0.9rem;
+		color: #f9fafb; /* igazítsd a témádhoz */
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+
+	.file-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.1rem 0.4rem;
+		border-radius: 9999px;
+		border: 1px solid #4b5563;
+	}
+
+	.file-remove {
+		border: none;
+		background: transparent;
+		cursor: pointer;
+		font-size: 0.9rem;
+		line-height: 1;
+		padding: 0;
+		color: #fca5a5;
+	}
+
+	.file-remove:hover {
+		color: #fecaca;
+	}
+
+	.file-warning {
+		margin-top: 0.25rem;
+		font-size: 0.875rem;
+		color: #b45309; /* narancsos figyelmeztetés */
+	}
+
+	.file-error {
+		margin-top: 0.25rem;
+		font-size: 0.875rem;
+		color: #b91c1c; /* piros hiba */
+	}
 }
