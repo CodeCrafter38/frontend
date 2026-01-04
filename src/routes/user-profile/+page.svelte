@@ -225,13 +225,9 @@
 		goto('/new-group');
 	}
 
-	// function createNewMemberArrays(groups: Group[]) {
-	// 	groups.forEach((group) => {
-	// 		const newMemberObject = { groupName: group.name, members: [] };
-	// 		newMembersByGroupArray.push(newMemberObject);
-	// 	});
-	// 	console.log('newMembersByGroupArray: ', newMembersByGroupArray);
-	// }
+	async function onUploadProfilePicture() {
+		goto('/upload-profile-picture');
+	}
 </script>
 
 <div class="page-container">
@@ -253,6 +249,7 @@
 		{/if}
 		<button class="btn" on:click={onUserNameChange}>Felhasználónév módosítása</button>
 		<button class="btn" on:click={onPasswordChange}>Jelszó módosítása</button>
+		<button class="btn" on:click={onUploadProfilePicture}>Profilkép feltöltése</button>
 		<button class="btn" on:click={onLogout}>Kijelentkezés</button>
 	</div>
 

@@ -8,7 +8,7 @@
 	let username = '';
 	let email = '';
 	let password = '';
-	let role = '';
+	let role = 'STUDENT';
 	let theme = 'light';
 
 	// téma betöltése a localStorage-ből az oldal betöltésekor
@@ -76,7 +76,11 @@
 		<input type="text" bind:value={username} placeholder="Felhasználónév" />
 		<input type="text" bind:value={email} placeholder="Email cím" />
 		<input type="password" bind:value={password} placeholder="Jelszó" />
-		<input type="text" bind:value={role} placeholder="Szerepkör" />
+		<select class="btn" bind:value={role}>
+			<option value="TEACHER">tanár vagyok</option>
+			<option value="STUDENT">diák vagyok</option>
+		</select>
+		<br />
 		<input class="btn" type="submit" value="Regisztráció" />
 	</form>
 	<a href="/login">Bejelentkezés</a>

@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import api from '$lib/api';
 	import logo from '$lib/assets/Nexus_white.png';
+	import sampleProfilePicture from '$lib/assets/sample_profile_picture.jpg';
 
 	type Group = {
 		id: number;
@@ -22,6 +23,7 @@
 	let groupIdsWithPostIds: mapGroupsToPosts[] = [];
 	let userName: string = $state('');
 	let userRole: string = $state('');
+	let profilePicture: any = $state(null);
 	let theme: string = $state('light');
 	let searchTerm: string = $state('');
 	let selectedGroups: number[] = $state([]);
@@ -39,6 +41,7 @@
 		}
 		userName = user.username;
 		userRole = user.role;
+		profilePicture = user.profilePicture;
 
 		// Téma betöltése a localStorage-ból
 		const storedTheme = localStorage.getItem('theme');
@@ -91,6 +94,10 @@
 		goto('/user-profile');
 	}
 
+	async function onUploadProfilePicture() {
+		goto('/upload-profile-picture');
+	}
+
 	async function onDeletePost(id: number) {
 		await api.delete(`/posts?id=${id}`);
 		loadPosts();
@@ -132,10 +139,28 @@
 </script>
 
 <div class="top-right-bar">
+	<div class="profile-picture">
+		{#if profilePicture !== null}
+			<img
+				src={`http://localhost:4000/api/files/profile-picture?filename=${profilePicture.filename}`}
+				alt="Profilkép"
+			/>
+		{:else}
+			<div class="tooltip">
+				<img
+					src={sampleProfilePicture}
+					alt="Profilkép"
+					onclick={onUploadProfilePicture}
+					style="cursor: pointer;"
+				/>
+				<span class="tooltiptext">Profilkép feltöltése</span>
+			</div>
+		{/if}
+	</div>
 	<div class="logo">
 		<img src={logo} alt="Nexus logo" />
 	</div>
-	<button class="toggle-btn" on:click={toggleTheme}>
+	<button class="toggle-btn" onclick={toggleTheme}>
 		{theme === 'light' ? '🌙' : '☀️'}
 	</button>
 </div>
@@ -145,9 +170,9 @@
 		<h2>Üdv a Nexusban, {userName}!</h2>
 		<p>Itt megtekintheted a számodra látható posztokat és hozzászólhatsz.</p>
 		<div class="actions">
-			<button class="btn" on:click={onProfilePage}>Felhasználói profil</button>
-			<button class="btn" on:click={onNewPost}>Új poszt</button>
-			<button class="btn" on:click={onLogout}>Kijelentkezés</button>
+			<button class="btn" onclick={onProfilePage}>Felhasználói profil</button>
+			<button class="btn" onclick={onNewPost}>Új poszt</button>
+			<button class="btn" onclick={onLogout}>Kijelentkezés</button>
 		</div>
 	</div>
 
@@ -251,7 +276,7 @@
 											<button
 												style="justify-content: flex-end; margin-left: auto;"
 												class="btn"
-												on:click={() => onDeleteComment(comment.id)}
+												onclick={() => onDeleteComment(comment.id)}
 											>
 												Komment törlése
 											</button>
@@ -268,10 +293,10 @@
 					{/if}
 					<br />
 					{#if (userRole !== 'STUDENT' && post.teachers_only === 1) || post.teachers_only === 0}
-						<button class="btn" on:click={() => onAddComment(post.id)}> Hozzászólok </button>
+						<button class="btn" onclick={() => onAddComment(post.id)}> Hozzászólok </button>
 					{/if}
 					{#if userRole === 'ADMIN'}
-						<button style="margin-left: 10px;" class="btn" on:click={() => onDeletePost(post.id)}>
+						<button style="margin-left: 10px;" class="btn" onclick={() => onDeletePost(post.id)}>
 							Poszt törlése
 						</button>
 					{/if}
@@ -386,6 +411,27 @@
 		margin-top: 0.5rem;
 		font-size: 0.9rem;
 		color: #555;
+	}
+
+	.tooltip {
+		position: relative;
+		display: inline-block;
+		cursor: default;
+	}
+	.tooltiptext {
+		visibility: hidden;
+		width: 100px;
+		background-color: black;
+		color: #fff;
+		text-align: center;
+		border-radius: 6px;
+		padding: 5px 0;
+		position: absolute;
+		z-index: 1;
+	}
+
+	.tooltip:hover .tooltiptext {
+		visibility: visible;
 	}
 
 	@media (max-width: 800px) {

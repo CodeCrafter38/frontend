@@ -76,6 +76,11 @@
 		height: auto;
 	}
 
+	.sidebar .profile-picture img {
+		width: 120px;
+		height: auto;
+	}
+
 	.sidebar .btn {
 		width: auto;
 		padding: 0.5rem 1rem;
