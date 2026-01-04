@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import logo from '$lib/assets/Nexus_white.png';
 	import MultiSelect from '$lib/components/MultiSelect.svelte';
+	import type { GroupType } from '$lib/types';
 
 	type Group = {
 		id: number;
@@ -14,7 +15,7 @@
 	};
 
 	const ALLOWED_EXTENSIONS = ['.doc', '.docx', '.xls', '.xlsx'];
-	const MAX_TOTAL_SIZE_MB = 2;
+	const MAX_TOTAL_SIZE_MB = 100;
 	const MAX_TOTAL_SIZE_BYTES = MAX_TOTAL_SIZE_MB * 1024 * 1024;
 
 	let user = null;
@@ -31,6 +32,7 @@
 	let selectedGroups: Group[] = $state([]);
 	let isPublic = $state(false);
 	let theme = $state('light');
+	let groupType: GroupType = $state('TEACHER_STUDENT');
 
 	let isUserLoaded = $state(false);
 
@@ -90,7 +92,7 @@
 		if (totalSize > MAX_TOTAL_SIZE_BYTES) {
 			const totalMB = (totalSize / (1024 * 1024)).toFixed(2);
 			alert(
-				`A csatolt fájlok összmérete (${totalMB} MB) meghaladja a megengedett ${MAX_TOTAL_SIZE_MB} MB-ot. Kérlek, csökkentsd a csatolt fájlok méretét!`
+				`A csatolt fájlok összmérete (${totalMB} MB) meghaladja a megengedett ${MAX_TOTAL_SIZE_MB} MB-ot. Törölj néhány fájlt.`
 			);
 			return;
 		}
@@ -108,6 +110,7 @@
 				formData.append('labels', JSON.stringify(labels)); // string[] -> JSON string
 				formData.append('userName', userName);
 				formData.append('videoLink', videoLink);
+				formData.append('groupType', groupType); // kommentelési jogosultság
 
 				// Több fájl esetén minden fájl hozzáadása
 				files.forEach((file) => {
@@ -338,6 +341,17 @@
 			</p>
 		{:else}
 			<p>Nem vagy benne egyik csoportban sem, csak nyilvános posztot tudsz létrehozni.</p>
+		{/if}
+		{#if userRole !== 'STUDENT'}
+			<div
+				style="display: flex; flex-direction: column; border-style: solid; border-width: 1px; border-radius: 10px; border-color: #ccc; align-items: center; margin-bottom: 10px; padding: 10px;"
+			>
+				<span>Ki kommentelhet a poszthoz:</span>
+				<select class="btn" bind:value={groupType}>
+					<option value="TEACHER_STUDENT">Tanárok és diákok is</option>
+					<option value="TEACHER_ONLY">Csak tanárok</option>
+				</select>
+			</div>
 		{/if}
 
 		<button class="btn" type="submit">Poszt létrehozása</button>

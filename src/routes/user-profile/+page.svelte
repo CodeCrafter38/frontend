@@ -11,6 +11,9 @@
 	type Group = {
 		id: number;
 		name: string;
+		description?: string;
+		created_at: any;
+		teachers_only: number;
 	};
 
 	type User = {
@@ -20,14 +23,12 @@
 	};
 
 	type GroupMapping = {
+		groupId: number;
 		groupName: string;
 		description?: string;
+		created_at: any;
+		teachers_only: number;
 		members: User[];
-	};
-
-	type NewMembersByGroup = {
-		groupName: string;
-		members: string[];
 	};
 
 	let user = null;
@@ -35,7 +36,7 @@
 	let userRole: string = $state('');
 	let availableGroups: Group[] = $state([]);
 	let groupMappings: GroupMapping[] = $state([]);
-	let newMembersByGroupArray: NewMembersByGroup[] = $state([]);
+	let newMembersByGroup = $state<Record<string, string[]>>({});
 	let theme: string = $state('light');
 
 	onMount(async () => {
@@ -67,26 +68,27 @@
 					availableGroups.push(group);
 				});
 			}
+			console.log('availableGroups: ', availableGroups);
 		} catch {
 			alert('Csoportok lekérdezése sikertelen!');
 		}
 
-		try {
-			availableGroups.forEach(async (group: any) => {
+		const mappings = await Promise.all(
+			availableGroups.map(async (group: Group) => {
 				const usersOfGroup = await api.get(`/users/ofGroup?groupId=${group.id}`);
-				console.log('usersOfGroup: ', usersOfGroup);
-				groupMappings.push({
+				return {
+					groupId: group.id,
 					groupName: group.name,
 					description: group.description,
-					members: usersOfGroup.data
-				});
-				console.log('groupMappings: ', groupMappings);
-			});
-		} catch {
-			alert('Csoporthoz tartozó felhasználók lekérdezése sikertelen!');
-		}
+					created_at: group.created_at,
+					teachers_only: group.teachers_only,
+					members: usersOfGroup.data as User[]
+				} satisfies GroupMapping;
+			})
+		);
 
-		createNewMemberArrays(availableGroups);
+		groupMappings = mappings.sort(sortByDateDesc);
+		newMembersByGroup = Object.fromEntries(groupMappings.map((g) => [g.groupName, []]));
 	});
 
 	function toggleTheme() {
@@ -100,7 +102,21 @@
 		document.body.classList.add(theme);
 	}
 
-	async function addUsersToGroup(groupName: string, usersToAdd: string[], groupIndex: number) {
+	async function addUsersToGroup(groupName: string, usersToAdd: string[]) {
+		// duplikáció ellenőrzés (a megadott userek közül tag-e már valaki a csoportban)
+		const normalizedUsersToAdd = usersToAdd.map((user) => user.trim()).filter(Boolean);
+
+		const mapping = groupMappings.find((group) => group.groupName === groupName);
+		if (mapping) {
+			const existingMembers = new Set(mapping.members.map((member) => member.username));
+			const alreadyInGroup = normalizedUsersToAdd.filter((user) => existingMembers.has(user));
+
+			if (alreadyInGroup.length > 0) {
+				alert(`Ezek a felhasználók már a csoport tagjai: ${alreadyInGroup.join(', ')}`);
+				return;
+			}
+		}
+
 		if (groupName === '' || usersToAdd.length === 0) {
 			alert('Kötelező csoportnevet és új tagot megadni!');
 		} else {
@@ -119,11 +135,28 @@
 				);
 
 				alert('Felhasználók csoporthoz rendelése sikeres!');
-				newMembersByGroupArray[groupIndex].members = [];
+				// newMembersByGroupArray[groupIndex].members = [];
+				newMembersByGroup[groupName] = [];
 				await refreshGroupMembers();
 			} catch (e: any) {
 				alert(e.response?.data?.msg || 'Felhasználók csoporthoz rendelése sikertelen!');
 			}
+		}
+	}
+
+	// TODO: use-case: ha törlünk egy csoportot, akkor ha volt az adott csoporthoz poszt létrehozva,
+	// akkor törlődik ugyan a hozzárendelés a user_groups és a post_groups táblákból, de a poszt megmarad
+	// privát posztként és az admin és a tanárok látják - jó-e így?
+	async function deleteGroup(groupName: string) {
+		try {
+			await api.delete(`/groups?groupName=${groupName}`);
+			alert('Csoport törlése sikeres!');
+			groupMappings.length = 0;
+			availableGroups = availableGroups.filter((group) => group.name !== groupName);
+			newMembersByGroup = Object.fromEntries(groupMappings.map((g) => [g.groupName, []]));
+			await refreshGroupMembers();
+		} catch (e: any) {
+			alert(e.response?.data?.msg || 'Csoport törlése sikertelen!');
 		}
 	}
 
@@ -139,17 +172,33 @@
 	}
 
 	async function refreshGroupMembers() {
-		groupMappings.length = 0;
-		availableGroups.forEach(async (group: any) => {
-			const usersOfGroup = await api.get(`/users/ofGroup?groupId=${group.id}`);
-			console.log('usersOfGroup: ', usersOfGroup);
-			groupMappings.push({
-				groupName: group.name,
-				description: group.description,
-				members: usersOfGroup.data
-			});
-			console.log('groupMappings after refresh: ', groupMappings);
-		});
+		const mappings = await Promise.all(
+			availableGroups.map(async (group: Group) => {
+				const usersOfGroup = await api.get(`/users/ofGroup?groupId=${group.id}`);
+				return {
+					groupId: group.id,
+					groupName: group.name,
+					description: group.description,
+					created_at: group.created_at,
+					teachers_only: group.teachers_only,
+					members: usersOfGroup.data as User[]
+				} satisfies GroupMapping;
+			})
+		);
+
+		groupMappings = mappings.sort(sortByDateDesc);
+
+		for (const groupMapping of groupMappings) {
+			if (!newMembersByGroup[groupMapping.groupName]) {
+				newMembersByGroup[groupMapping.groupName] = [];
+			}
+		}
+	}
+
+	function sortByDateDesc(a: GroupMapping, b: GroupMapping) {
+		const ta = a.created_at ? Date.parse(a.created_at) : 0;
+		const tb = b.created_at ? Date.parse(b.created_at) : 0;
+		return tb - ta;
 	}
 
 	async function onLogout() {
@@ -176,13 +225,13 @@
 		goto('/new-group');
 	}
 
-	function createNewMemberArrays(groups: Group[]) {
-		groups.forEach((group) => {
-			const newMemberObject = { groupName: group.name, members: [] };
-			newMembersByGroupArray.push(newMemberObject);
-		});
-		console.log('newMembersByGroupArray: ', newMembersByGroupArray);
-	}
+	// function createNewMemberArrays(groups: Group[]) {
+	// 	groups.forEach((group) => {
+	// 		const newMemberObject = { groupName: group.name, members: [] };
+	// 		newMembersByGroupArray.push(newMemberObject);
+	// 	});
+	// 	console.log('newMembersByGroupArray: ', newMembersByGroupArray);
+	// }
 </script>
 
 <div class="page-container">
@@ -199,7 +248,9 @@
 			{theme === 'light' ? '🌙' : '☀️'}
 		</button>
 		<button class="btn" on:click={onHome}>Kezdőlap</button>
-		<button class="btn" on:click={onCreateNewGroup}>Új csoport létrehozása</button>
+		{#if userRole === 'ADMIN' || userRole === 'TEACHER'}
+			<button class="btn" on:click={onCreateNewGroup}>Új csoport létrehozása</button>
+		{/if}
 		<button class="btn" on:click={onUserNameChange}>Felhasználónév módosítása</button>
 		<button class="btn" on:click={onPasswordChange}>Jelszó módosítása</button>
 		<button class="btn" on:click={onLogout}>Kijelentkezés</button>
@@ -212,57 +263,79 @@
 			<h1>Csoportjaid</h1>
 		{/if}
 		{#if groupMappings.length > 0}
-			{#each groupMappings as mapping, i}
+			{#each groupMappings as mapping (mapping.groupName)}
 				<div class="post">
-					<h3>{mapping.groupName}</h3>
+					<div style="display: flex; flex-direction: row;">
+						<h3>{mapping.groupName}</h3>
+						<div style="margin-left: auto; text-align: right;">
+							<span style="font-weight: normal">Létrehozva:</span>
+							{mapping.created_at.replace(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/, '$1 $2')}
+						</div>
+					</div>
+					{#if mapping.teachers_only === 1}
+						<h4>Csak tanárok számára elérhető csoport</h4>
+					{/if}
 					<h4><span style="font-weight:normal">Mottó:</span> {mapping.description}</h4>
-					{#if mapping.members.length === 0}
-						<h4>Még nincsenek tagok a csoportban.</h4>
-					{:else}
-						<h4>Tagok:</h4>
-						<ul
-							class="comments"
-							style="display: flex; flex-direction: column; margin-bottom: 10px;"
-						>
-							{#each mapping.members as member}
-								{member.username}
-								<li style="justify-content: flex-end; margin-left: auto;">
-									{#if userRole === 'TEACHER' && member.username !== userName && member.role !== 'ADMIN'}
-										<button
-											class="btn"
-											style="width: 70px"
-											on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
-											>{member.username !== userName && 'Kidobás'}</button
-										>
-									{:else if userRole === 'ADMIN' && member.username !== userName}
-										<button
-											class="btn"
-											style="width: 70px"
-											on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
-											>{member.username !== userName && 'Kidobás'}</button
-										>
-									{/if}
-								</li>
-								<br />
-							{/each}
-						</ul>
-					{/if}
-					{#if userRole !== 'STUDENT'}
-						<h4>Új tagok hozzáadásához írd be a lenti mezőbe az új tagok felhasználónevét:</h4>
-						<MultiSelect
-							bind:tags={newMembersByGroupArray[i].members}
-							placeholder="Új tagok hozzáadása..."
-						/>
-						<button
-							class="btn"
-							style="width: 30%"
-							on:click={() =>
-								addUsersToGroup(mapping.groupName, newMembersByGroupArray[i].members, i)}
-							disabled={!newMembersByGroupArray[i].members?.length}
-						>
-							Tag/tagok hozzáadása
-						</button>
-					{/if}
+					<h4>
+						{#if mapping.members.length === 0}
+							<h4>Még nincsenek tagok a csoportban.</h4>
+						{:else}
+							<h4>Tagok:</h4>
+							<ul
+								class="comments"
+								style="display: flex; flex-direction: column; margin-bottom: 10px;"
+							>
+								{#each mapping.members as member}
+									{member.username}
+									<li style="justify-content: flex-end; margin-left: auto;">
+										{#if userRole === 'TEACHER' && member.username !== userName && member.role !== 'ADMIN'}
+											<button
+												class="btn"
+												style="width: 70px"
+												on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
+												>{member.username !== userName && 'Kidobás'}</button
+											>
+										{:else if userRole === 'ADMIN' && member.username !== userName}
+											<button
+												class="btn"
+												style="width: 70px"
+												on:click={() => removeUserFromGroup(mapping.groupName, member.id)}
+												>{member.username !== userName && 'Kidobás'}</button
+											>
+										{/if}
+									</li>
+									<br />
+								{/each}
+							</ul>
+						{/if}
+						{#if userRole !== 'STUDENT'}
+							<h4>Új tagok hozzáadásához írd be a lenti mezőbe az új tagok felhasználónevét:</h4>
+							<MultiSelect
+								bind:tags={newMembersByGroup[mapping.groupName]}
+								placeholder="Új tagok hozzáadása..."
+							/>
+							<div style="display: flex; flex-direction: row;">
+								<button
+									class="btn"
+									style="width: 30%"
+									on:click={() =>
+										addUsersToGroup(mapping.groupName, newMembersByGroup[mapping.groupName])}
+									disabled={!newMembersByGroup[mapping.groupName]?.length}
+								>
+									Tag/tagok hozzáadása
+								</button>
+								{#if userRole == 'ADMIN'}
+									<button
+										class="btn"
+										style="width: 30%; flex-direction: right; margin-left: auto;"
+										on:click={() => {
+											deleteGroup(mapping.groupName);
+										}}>Csoport törlése</button
+									>
+								{/if}
+							</div>
+						{/if}
+					</h4>
 				</div>
 			{/each}
 		{:else}

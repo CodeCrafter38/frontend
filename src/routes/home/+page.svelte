@@ -182,13 +182,13 @@
 			{#each posts.filter((post: any) => searchInPosts(post, searchTerm) && filterByGroups(post, selectedGroups)) as post}
 				<div class="post">
 					<h3>{post.title}</h3>
-					<strong>Szerző: {post.username}</strong>
-					<div
-						style="display: flex; justify-content: flex-end; margin-left: auto; margin-bottom: 10px;"
-					>
-						{post.created_at.replace(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/, '$1 $2')}
+					<div style="display: flex; flex-direction: row; margin-right: auto;">
+						<strong>Szerző: {post.username}</strong>
+						<div style="align-content: right; margin-left: auto; margin-bottom: 10px;">
+							{post.created_at.replace(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/, '$1 $2')}
+						</div>
 					</div>
-					<div class="post-content">{post.content}</div>
+					<div class="post-content" style="margin-bottom: 30px;">{post.content}</div>
 					{#if post.video_link}
 						<!-- a megadott target és a rel attribútumok megakadályozzák, hogy a belinkelt oldal
 						elérje a forrás oldal window objektumát, és visszatartják a hivatkozási információkat
@@ -214,6 +214,7 @@
 									src={`http://localhost:4000/api/files?filename=${file.filename}`}
 									alt="Kép"
 									width="200"
+									style="margin-bottom: 20px;"
 								/>
 								<br />
 							{:else}
@@ -237,14 +238,14 @@
 						<strong>Kommentek:</strong>
 						<ul class="comments">
 							{#each post.comments as comment}
-								<div style="display: flex; flex-direction: column; margin-bottom: 10px;">
-									<div style="justify-content: flex-start; margin-right: auto">
-										<strong>Szerző: {comment.username}</strong>
+								<div style="display: flex; flex-direction: row; margin-right: auto">
+									<strong>Szerző: {comment.username}</strong>
+									<div style="align-content: right; margin-left: auto; margin-bottom: 10px;">
+										{comment.created_at.replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}).*$/, '$1')}
 									</div>
+								</div>
+								<div style="display: flex; flex-direction: column; margin-bottom: 10px;">
 									<li style="display: flex; flex-direction: column; margin-bottom: 10px;">
-										<div style="justify-content: flex-end; margin-left: auto; margin-bottom: 10px;">
-											{comment.created_at.replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}).*$/, '$1')}
-										</div>
 										{comment.content}
 										{#if now - new Date(comment.created_at).getTime() < 60000 || userRole === 'ADMIN'}
 											<button
@@ -256,6 +257,7 @@
 											</button>
 										{/if}
 									</li>
+									<br />
 								</div>
 							{/each}
 						</ul>
@@ -265,7 +267,9 @@
 						<br />
 					{/if}
 					<br />
-					<button class="btn" on:click={() => onAddComment(post.id)}> Hozzászólok </button>
+					{#if (userRole !== 'STUDENT' && post.teachers_only === 1) || post.teachers_only === 0}
+						<button class="btn" on:click={() => onAddComment(post.id)}> Hozzászólok </button>
+					{/if}
 					{#if userRole === 'ADMIN'}
 						<button style="margin-left: 10px;" class="btn" on:click={() => onDeletePost(post.id)}>
 							Poszt törlése
@@ -371,7 +375,7 @@
 		list-style-type: disc;
 		padding-left: 1.5rem;
 		margin-top: 0.5rem;
-		margin-bottom: 3rem;
+		/* margin-bottom: 3rem; */
 	}
 
 	.comments li {
