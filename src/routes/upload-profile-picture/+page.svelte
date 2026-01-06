@@ -1,11 +1,11 @@
-<!-- upload profile picture page -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { getUserStatus } from '$lib/auth';
 	import { onMount } from 'svelte';
 	import { logout } from '$lib/logout';
-	import logo from '$lib/assets/Nexus_white.png';
 	import api from '$lib/api';
+
+	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
 
 	const MAX_SIZE_MB = 100;
 	const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
@@ -13,40 +13,33 @@
 	let user = null;
 	let userName: string = $state('');
 	let profilePicture: any = $state(null);
-	let theme: 'light' | 'dark' = $state('light');
 
 	let file: File | null = $state(null);
 	let fileError: string = $state('');
 	let fileWarning: string = $state('');
 
-	let isUserLoaded = $state(false);
-
 	onMount(async () => {
 		user = await getUserStatus();
 		if (!user) {
 			goto('/login');
+			return;
 		}
+
 		userName = user.username;
 		profilePicture = user.profilePicture;
-		isUserLoaded = true;
 
-		const storedTheme = localStorage.getItem('theme');
-		if (storedTheme === 'light' || storedTheme === 'dark') {
-			theme = storedTheme;
+		uiIsAuthenticated.set(true);
+		uiUserName.set(userName);
+		uiUserRole.set(user.role);
+
+		if (profilePicture?.filename) {
+			uiProfilePictureUrl.set(
+				`http://localhost:4000/api/files/profile-picture?filename=${profilePicture.filename}`
+			);
+		} else {
+			uiProfilePictureUrl.set(null);
 		}
-		updateBodyClass();
 	});
-
-	function toggleTheme() {
-		theme = theme === 'light' ? 'dark' : 'light';
-		localStorage.setItem('theme', theme);
-		updateBodyClass();
-	}
-
-	function updateBodyClass() {
-		document.body.classList.remove('light', 'dark');
-		document.body.classList.add(theme);
-	}
 
 	function onHome() {
 		goto('/home');
@@ -59,6 +52,10 @@
 	async function onLogout() {
 		try {
 			await logout();
+			uiIsAuthenticated.set(false);
+			uiProfilePictureUrl.set(null);
+			uiUserName.set('');
+			uiUserRole.set('');
 		} catch {
 			alert('Sikertelen kijelentkezés!');
 		}
@@ -79,7 +76,6 @@
 
 	function onFileChange(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
-		// csak az első fájlt vesszük
 		const selected = input?.files?.[0] ?? null;
 
 		fileWarning = '';
@@ -92,7 +88,6 @@
 
 		const err = validateFile(selected);
 		if (err) {
-			// ha rossz a fájl, maradjon üres
 			file = null;
 			fileError = err;
 			input.value = '';
@@ -100,8 +95,6 @@
 		}
 
 		file = selected;
-
-		// kiürítjük az inputot, hogy ugyanazt a fájlt is újra ki lehessen választani
 		input.value = '';
 	}
 
@@ -122,12 +115,8 @@
 			formData.append('userName', userName);
 			formData.append('file', file!);
 
-			// Multipart/form-data formátumban küldjük a fájlokat és a mezőket is,
-			// nem JSON formátumban (mert egyébként a fájl tömb nem fájlként lesz értelmezve)
 			await api.post('/users/upload-profile-picture', formData, {
-				headers: {
-					'Content-Type': 'multipart/form-data'
-				}
+				headers: { 'Content-Type': 'multipart/form-data' }
 			});
 
 			alert('Profilkép feltöltve');
@@ -140,9 +129,7 @@
 	async function removeProfilePicture() {
 		try {
 			await api.delete('/users/remove-profile-picture', {
-				data: {
-					userName: userName
-				}
+				data: { userName }
 			});
 
 			alert('Profilkép törölve');
@@ -159,58 +146,52 @@
 	}
 </script>
 
-<div class="sidebar">
-	<div class="logo">
-		<img src={logo} alt="Nexus logo" />
-	</div>
+<div class="page-container">
+	<aside class="sidebar">
+		<button class="btn" on:click={onHome}>Kezdőlap</button>
+		<button class="btn" on:click={onProfilePage}>Felhasználói profil</button>
+		<button class="btn" on:click={onLogout}>Kijelentkezés</button>
+	</aside>
 
-	<button class="toggle-btn" onclick={toggleTheme}>
-		{theme === 'light' ? '🌙' : '☀️'}
-	</button>
+	<main class="content-pane">
+		<div class="content-inner">
+			<div class="form-card">
+				<h1>Profilkép feltöltés</h1>
 
-	<button class="btn" onclick={onHome}>Kezdőlap</button>
-	<button class="btn" onclick={onProfilePage}>Felhasználói profil</button>
-	<button class="btn" onclick={onLogout}>Kijelentkezés</button>
+				<form on:submit={onSubmit}>
+					<input
+						id="img"
+						type="file"
+						accept="image/*"
+						style="display:none;"
+						on:change={onFileChange}
+					/>
+					<label class="btn" for="img">Kép kiválasztása</label>
+
+					<span class="file-label-text">
+						{#if file}
+							<span class="file-chip">
+								{file.name}
+								<button type="button" class="file-remove" on:click={() => removeFile()}>×</button>
+							</span>
+						{:else}
+							Nincs fájl kiválasztva
+						{/if}
+					</span>
+
+					<button class="btn btn-wide" type="submit" disabled={file === null || fileError !== ''}>
+						Profilkép beállítása
+					</button>
+				</form>
+
+				<br />
+
+				{#if profilePicture !== null || fileError !== ''}
+					<button class="btn btn-wide" on:click={() => removeProfilePicture()}>
+						Beállított profilkép törlése
+					</button>
+				{/if}
+			</div>
+		</div>
+	</main>
 </div>
-
-<div class="content-pane">
-	<h1>Profilkép feltöltés</h1>
-
-	<form onsubmit={onSubmit}>
-		<input
-			id="img"
-			type="file"
-			multiple
-			accept="image/*"
-			placeholder="Fájl helye"
-			style="display:none;"
-			onchange={onFileChange}
-		/>
-		<label class="btn" for="img">Kép kiválasztása</label>
-		<br />
-		<span class="file-label-text" style="margin-bottom: 10px;">
-			{#if file}
-				<span class="file-chip">
-					{file.name}
-					<button type="button" class="file-remove" onclick={() => removeFile()}> × </button>
-				</span>
-			{:else}
-				Nincs fájl kiválasztva
-			{/if}
-		</span>
-		<button class="btn" type="submit" disabled={file === null || fileError !== ''}
-			>Profilkép beállítása</button
-		>
-	</form>
-	<br />
-	{#if profilePicture !== null || fileError !== ''}
-		<button class="btn" style="width: 500px;" onclick={() => removeProfilePicture()}
-			>Beállított profilkép törlése</button
-		>
-	{/if}
-</div>
-
-<style>
-	@import '../../app.css';
-	@import '../new_post_comment.css';
-</style>

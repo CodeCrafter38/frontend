@@ -1,84 +1,56 @@
-<!-- login page -->
 <script>
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
 	import { onMount } from 'svelte';
-	import logo from '$lib/assets/Nexus_white.png';
-
-	const BACKEND_URL = 'http://localhost:4000/api';
+	import { uiClear } from '$lib/stores/ui';
 
 	let email = '';
 	let password = '';
-	let theme = 'light';
 
-	// téma betöltése a localStorage-ből az oldal betöltésekor
 	onMount(() => {
-		const storedTheme = localStorage.getItem('theme');
-		if (storedTheme) {
-			theme = storedTheme;
-		}
-		updateBodyClass();
+		uiClear();
 	});
-
-	function toggleTheme() {
-		theme = theme === 'light' ? 'dark' : 'light';
-		localStorage.setItem('theme', theme);
-		updateBodyClass();
-	}
-
-	function updateBodyClass() {
-		document.body.classList.remove('light', 'dark');
-		document.body.classList.add(theme);
-	}
 
 	async function loginWithEmail() {
 		if (email == '' || password == '') {
 			alert('Minden mezőt kötelező kitölteni!');
-		} else {
-			await api
-				.post('/login', { email, password })
-				.then((response) => {
-					goto('/home');
-				})
-				.catch((error) => alert('Felhasználónév vagy jelszó nem egyezik!'));
+			return;
 		}
+
+		await api
+			.post('/login', { email, password })
+			.then(() => goto('/home'))
+			.catch(() => alert('Felhasználónév vagy jelszó nem egyezik!'));
 	}
 
 	async function loginWithGoogle() {
-		// Nem fetch, hanem redirect!
-		// window.location.href = `${BACKEND_URL}/google`;
 		window.location.href = 'http://localhost:4000/api/auth/google';
 	}
 </script>
-
-<div class="top-right-bar">
-	<div class="logo">
-		<img src={logo} alt="Nexus logo" />
-	</div>
-	<button class="toggle-btn" on:click={toggleTheme}>
-		{theme === 'light' ? '🌙' : '☀️'}
-	</button>
-</div>
 
 <div class="left-pane">
 	<h2>Üdvözlet a Nexus felületén</h2>
 	<p>
 		Szeretnél részt venni egy színes egyetemi közösség életében? Oszd meg gondolataidat, mondd el
-		véleményedet, csatlakozz a csoportjaidhoz.<br />Új vagy itt? Kérlek olvasd el a
-		<strong>GYIK</strong>-et (elkészítése folyamatban) posztolás előtt.
+		véleményedet, csatlakozz a csoportjaidhoz.<br />
+		Új vagy itt? Kérlek olvasd el a <strong>GYIK</strong>-et (elkészítése folyamatban) posztolás
+		előtt.
 	</p>
 </div>
 
 <div class="right-pane">
 	<h1>Bejelentkezés</h1>
-	<br />
-	<form on:submit|preventDefault={loginWithEmail}>
+	<form on:submit|preventDefault={loginWithEmail} class="form-card">
 		<input type="text" bind:value={email} placeholder="Email cím" />
 		<input type="password" bind:value={password} placeholder="Jelszó" />
 		<input class="btn" type="submit" value="Bejelentkezés" />
 	</form>
+
 	<hr />
-	<button on:click={loginWithGoogle}> Belépés Google fiókkal </button>
+
+	<button class="btn" on:click={loginWithGoogle}>Belépés Google fiókkal</button>
+
 	<hr />
+
 	<a href="/signup">Regisztráció</a>
 </div>

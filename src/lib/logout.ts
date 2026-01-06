@@ -4,7 +4,8 @@ import api from '$lib/api';
 export async function logout() {
 	await api.post('/logout');
 
-	// Invalidate the layout load function (refetch user info)
-	await invalidate(''); // '' (empty string) means "invalidate everything"
+	// Invalidáljuk a layout betöltés függvényt (újra lekérjük a user infót)
+	// Üres string jelentése: invalidáljunk mindent
+	await invalidate('');
 	goto('/login');
 }

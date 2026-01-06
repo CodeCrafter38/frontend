@@ -1,4 +1,3 @@
-<!-- comment page -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
@@ -6,57 +5,56 @@
 	import { logout } from '$lib/logout';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import logo from '$lib/assets/Nexus_white.png';
+
+	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
 
 	let user = null;
 	let content: string = $state('');
-	let theme = $state('light');
 
 	const postId = page.url.searchParams.get('postId');
 
 	onMount(async () => {
-		// Felhasználó authentikáció ellenőrzése
 		user = await getUserStatus();
 		if (!user) {
 			goto('/login');
+			return;
 		}
 
-		// Téma betöltése a localStorage-ból
-		const storedTheme = localStorage.getItem('theme');
-		if (storedTheme) {
-			theme = storedTheme;
+		uiIsAuthenticated.set(true);
+		uiUserName.set(user.username);
+		uiUserRole.set(user.role);
+
+		if (user.profilePicture?.filename) {
+			uiProfilePictureUrl.set(
+				`http://localhost:4000/api/files/profile-picture?filename=${user.profilePicture.filename}`
+			);
+		} else {
+			uiProfilePictureUrl.set(null);
 		}
-		updateBodyClass();
 	});
-
-	function toggleTheme() {
-		theme = theme === 'light' ? 'dark' : 'light';
-		localStorage.setItem('theme', theme);
-		updateBodyClass();
-	}
-
-	function updateBodyClass() {
-		document.body.classList.remove('light', 'dark');
-		document.body.classList.add(theme);
-	}
 
 	async function createComment() {
 		if (content == '') {
 			alert('A komment tartalmát kötelező kitölteni!');
-		} else {
-			try {
-				await api.post('/comments', { postId, content });
-				alert('Sikeres komment beküldés');
-				goto('/home');
-			} catch (e: any) {
-				alert(e.response?.data?.msg || 'Sikertelen komment beküldés!');
-			}
+			return;
+		}
+
+		try {
+			await api.post('/comments', { postId, content });
+			alert('Sikeres komment beküldés');
+			goto('/home');
+		} catch (e: any) {
+			alert(e.response?.data?.msg || 'Sikertelen komment beküldés!');
 		}
 	}
 
 	async function onLogout() {
 		try {
 			await logout();
+			uiIsAuthenticated.set(false);
+			uiProfilePictureUrl.set(null);
+			uiUserName.set('');
+			uiUserRole.set('');
 		} catch {
 			alert('Sikertelen kijelentkezés!');
 		}
@@ -67,26 +65,22 @@
 	}
 </script>
 
-<div class="sidebar">
-	<div class="logo">
-		<img src={logo} alt="Nexus logo" />
-	</div>
-	<button class="toggle-btn" on:click={toggleTheme}>
-		{theme === 'light' ? '🌙' : '☀️'}
-	</button>
-	<button class="btn" on:click={onHome}>Kezdőlap</button>
-	<button class="btn" on:click={onLogout}>Kijelentkezés</button>
-</div>
+<div class="page-container">
+	<aside class="sidebar">
+		<button class="btn" on:click={onHome}>Kezdőlap</button>
+		<button class="btn" on:click={onLogout}>Kijelentkezés</button>
+	</aside>
 
-<div class="content-pane">
-	<h1>Komment hozzáadása</h1>
-	<form on:submit|preventDefault={createComment}>
-		<textarea bind:value={content} placeholder="Komment tartalma"></textarea>
-		<br />
-		<button class="btn" type="submit">Komment beküldése</button>
-	</form>
+	<main class="content-pane">
+		<div class="content-inner">
+			<div class="form-card">
+				<h1>Komment hozzáadása</h1>
+				<form on:submit|preventDefault={createComment}>
+					<textarea bind:value={content} placeholder="Komment tartalma"></textarea>
+					<br />
+					<button class="btn btn-wide" type="submit">Komment beküldése</button>
+				</form>
+			</div>
+		</div>
+	</main>
 </div>
-
-<style>
-	@import '../new_post_comment.css';
-</style>

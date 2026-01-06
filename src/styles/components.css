@@ -1,0 +1,266 @@
+/* Gombok */
+.btn {
+	background-color: var(--button-bg);
+	color: white;
+	border: none;
+	padding: 0.75rem 1rem;
+	cursor: pointer;
+	border-radius: var(--radius-sm);
+	text-align: center;
+	transition: opacity 0.15s ease;
+}
+
+.btn:hover {
+	opacity: 0.9;
+}
+
+.btn:disabled,
+button.btn[disabled] {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+	filter: grayscale(70%);
+}
+
+.btn.btn-sm {
+	padding: 0.45rem 0.6rem;
+	font-size: 0.85rem;
+}
+
+.btn.btn-wide {
+	width: 100%;
+}
+
+/* Sidebar gomb-szín logika */
+body.light .sidebar .btn {
+	background-color: var(--color-dark-blue);
+}
+
+body.dark .sidebar .btn {
+	background-color: var(--color-orange);
+}
+
+/* Theme toggle */
+.toggle-btn {
+	background: var(--button-bg);
+	color: white;
+	border: none;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	font-size: 1.2rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: opacity 0.15s ease;
+}
+
+.toggle-btn:hover {
+	opacity: 0.92;
+}
+
+input:not([type]),
+input[type='text'],
+input[type='password'],
+input[type='email'],
+input[type='url'],
+input[type='search'],
+input[type='number'],
+textarea,
+select {
+	background-color: var(--input-bg);
+	border: 1px solid var(--color-border);
+	color: var(--text-right);
+	padding: 0.75rem;
+	border-radius: var(--radius-sm);
+	width: 100%;
+}
+
+input:not([type])::placeholder,
+input[type='text']::placeholder,
+input[type='password']::placeholder,
+input[type='email']::placeholder,
+input[type='url']::placeholder,
+input[type='search']::placeholder,
+input[type='number']::placeholder,
+textarea::placeholder {
+	color: var(--color-placeholder);
+}
+
+textarea {
+	resize: vertical;
+	min-height: 140px;
+}
+
+/* Kártya - post */
+.card,
+.post {
+	background-color: var(--input-bg);
+	color: white;
+	padding: 1rem;
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow);
+	margin: 1rem 0;
+}
+
+.post h3 {
+	color: var(--color-orange);
+	margin-bottom: 0.5rem;
+}
+
+.post-meta {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 0.5rem;
+}
+
+.post-content {
+	margin: 0.75rem 0 1rem 0;
+}
+
+/* Keresés, szűrés*/
+.search-row {
+	margin: 0 0 1rem 0;
+}
+
+.search-input {
+	max-width: 420px;
+}
+
+.group-filters {
+	display: flex;
+	gap: 1.25rem;
+	flex-wrap: wrap;
+	margin: 0.5rem 0 1rem 0;
+}
+
+.filter-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+/* Kommentek */
+.comments {
+	list-style: disc;
+	padding-left: 1.25rem;
+	margin: 0.5rem 0 0 0;
+}
+
+.comment-meta {
+	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	margin: 0.25rem 0;
+}
+
+.comment-item {
+	margin: 0.25rem 0 0.75rem 0;
+}
+
+/* címkék */
+.post-labels {
+	margin-top: 0.5rem;
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.7);
+}
+
+/* Tooltip a profilképhez */
+.tooltip {
+	position: relative;
+	display: inline-block;
+}
+
+.tooltiptext {
+	visibility: hidden;
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	background: #000;
+	color: #fff;
+	padding: 6px 10px;
+	border-radius: 6px;
+	font-size: 0.85rem;
+	white-space: nowrap;
+	z-index: 10;
+}
+
+.tooltip:hover .tooltiptext {
+	visibility: visible;
+}
+
+/* File chip (new-post, upload-profile-picture) */
+.file-label-text {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0.5rem 0;
+	color: rgba(255, 255, 255, 0.8);
+}
+
+.file-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.2rem 0.55rem;
+	border-radius: 9999px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	background: rgba(0, 0, 0, 0.25);
+}
+
+.file-remove {
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	font-size: 1rem;
+	line-height: 1;
+	padding: 0;
+	color: #fca5a5;
+}
+
+.file-remove:hover {
+	color: #fecaca;
+}
+
+.file-warning {
+	margin-top: 0.25rem;
+	font-size: 0.9rem;
+	color: #b45309;
+}
+
+.file-error {
+	margin-top: 0.25rem;
+	font-size: 0.9rem;
+	color: #b91c1c;
+}
+
+.fieldset {
+	border: 1px solid rgba(255, 255, 255, 0.25);
+	border-radius: var(--radius-md);
+	padding: 0.75rem;
+	margin: 0.75rem 0;
+}
+
+.sidebar-title {
+	font-weight: bold;
+	font-size: large;
+	margin-bottom: 1rem;
+}
+
+@media (max-width: 600px) {
+	.card,
+	.post {
+		padding: 0.75rem;
+	}
+	.btn {
+		padding: 0.6rem 0.8rem;
+		font-size: 0.9rem;
+	}
+	input,
+	textarea,
+	select {
+		font-size: 0.95rem;
+	}
+}

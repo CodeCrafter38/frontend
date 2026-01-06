@@ -1,104 +1,60 @@
 <script lang="ts">
-	import { Trash2 } from 'lucide-svelte';
+	// Svelte 5 – bindable prop
+	let { tags = $bindable<string[]>([]), placeholder = '' } = $props();
 
-	export let tags: string[] = [];
-	export let placeholder: string = '';
-	let inputValue: string = '';
-	let error: string = '';
+	let input = $state('');
 
-	function addTag() {
-		const value = inputValue.trim();
-		if (!value) {
+	function normalize(raw: string) {
+		return raw
+			.split(',')
+			.map((s) => s.trim())
+			.filter(Boolean);
+	}
+
+	function addFromInput() {
+		const parts = normalize(input);
+		if (parts.length === 0) return;
+
+		const next = [...tags];
+		for (const p of parts) {
+			if (!next.includes(p)) next.push(p);
+		}
+		tags = next;
+		input = '';
+	}
+
+	function removeTag(idx: number) {
+		tags = tags.filter((_, i) => i !== idx);
+	}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			addFromInput();
 			return;
 		}
 
-		if (tags.includes(value)) {
-			error = 'Már létezik ilyen nevű címke.';
+		if (e.key === ',') {
+			e.preventDefault();
+			addFromInput();
 			return;
 		}
 
-		tags = [...tags, value];
-		inputValue = '';
-		error = '';
-	}
-
-	function removeTag(index: number) {
-		tags = tags.filter((_, i) => i !== index);
-	}
-
-	function handleKeyDown(event: KeyboardEvent) {
-		if (event.key === 'Enter') {
-			event.preventDefault();
-			addTag();
+		if (e.key === 'Backspace' && input.length === 0 && tags.length > 0) {
+			removeTag(tags.length - 1);
 		}
-	}
-
-	function handleBlur() {
-		addTag();
 	}
 </script>
 
-<div class="multi-select">
-	{#each tags as tag, i}
-		<span class="tag">
-			<span class="tag-label">{tag}</span>
-			<button type="button" aria-label="Törlés" on:click={() => removeTag(i)} class="remove-btn">
-				<Trash2 size={16} />
-			</button>
-		</span>
-	{/each}
-	<input
-		type="text"
-		bind:value={inputValue}
-		on:keydown={handleKeyDown}
-		on:blur={handleBlur}
-		{placeholder}
-	/>
+<div class="multi-select" style="margin: 0.5rem 0 1rem 0;">
+	<div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+		{#each tags as tag, i (tag)}
+			<span class="file-chip">
+				{tag}
+				<button type="button" class="file-remove" onclick={() => removeTag(i)}>×</button>
+			</span>
+		{/each}
+	</div>
+
+	<input type="text" bind:value={input} {placeholder} onkeydown={onKeyDown} onblur={addFromInput} />
 </div>
-
-{#if error}
-	<div class="error">{error}</div>
-{/if}
-
-<style>
-	@import '/src/routes/new_post_comment.css';
-	.multi-select {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
-		align-items: start;
-		padding: 4px;
-		border-radius: 4px;
-	}
-	.tag {
-		display: flex;
-		border: 2px solid var(--color-border);
-		border-radius: 4px;
-		padding: 2px 6px;
-		font-size: 0.9rem;
-		height: 2rem;
-		align-items: center;
-	}
-	.tag-label {
-		user-select: none;
-	}
-	.remove-btn {
-		background: none;
-		border: none;
-		margin-left: 4px;
-		cursor: pointer;
-		padding: 2px;
-		display: flex;
-		align-items: center;
-		color: #f96c06;
-	}
-	.multi-select input {
-		flex: 1;
-		min-width: 100px;
-	}
-	.error {
-		color: red;
-		margin-top: 4px;
-		font-size: 0.9rem;
-	}
-</style>
