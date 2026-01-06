@@ -1,20 +1,10 @@
-<!-- <script lang="ts">
-	import '../app.css';
-
-	let { children } = $props();
-</script>
-
-{@render children()} -->
-
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-
 	import logo from '$lib/assets/Nexus_white.png';
 	import sampleProfilePicture from '$lib/assets/sample_profile_picture.jpg';
-
 	import { uiIsAuthenticated, uiProfilePictureUrl } from '$lib/stores/ui';
 
 	let { children } = $props();

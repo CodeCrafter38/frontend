@@ -4,9 +4,8 @@
 	import { getUserStatus } from '$lib/auth';
 	import { logout } from '$lib/logout';
 	import { onMount } from 'svelte';
-	import type { GroupType } from '$lib/types';
-
 	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
+	import type { GroupType } from '$lib/types';
 
 	let user = null;
 	let name: string = $state('');

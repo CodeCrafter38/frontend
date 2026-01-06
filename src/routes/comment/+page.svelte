@@ -5,7 +5,6 @@
 	import { logout } from '$lib/logout';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-
 	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
 
 	let user = null;

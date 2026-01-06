@@ -5,36 +5,13 @@
 	import { logout } from '$lib/logout';
 	import { onMount } from 'svelte';
 	import MultiSelect from '$lib/components/MultiSelect.svelte';
-
 	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
-
-	type Group = {
-		id: number;
-		name: string;
-		description?: string;
-		created_at: any;
-		teachers_only: number;
-	};
-
-	type User = {
-		id: number;
-		username: string;
-		role: string;
-	};
-
-	type GroupMapping = {
-		groupId: number;
-		groupName: string;
-		description?: string;
-		created_at: any;
-		teachers_only: number;
-		members: User[];
-	};
+	import type { GroupExtended, GroupMapping, User } from '$lib/types';
 
 	let user = null;
 	let userName: string = $state('');
 	let userRole: string = $state('');
-	let availableGroups: Group[] = $state([]);
+	let availableGroups: GroupExtended[] = $state([]);
 	let groupMappings: GroupMapping[] = $state([]);
 	let newMembersByGroup = $state<Record<string, string[]>>({});
 
@@ -73,7 +50,7 @@
 		}
 
 		const mappings = await Promise.all(
-			availableGroups.map(async (group: Group) => {
+			availableGroups.map(async (group: GroupExtended) => {
 				const usersOfGroup = await api.get(`/users/ofGroup?groupId=${group.id}`);
 				return {
 					groupId: group.id,
@@ -148,7 +125,7 @@
 
 	async function refreshGroupMembers() {
 		const mappings = await Promise.all(
-			availableGroups.map(async (group: Group) => {
+			availableGroups.map(async (group: GroupExtended) => {
 				const usersOfGroup = await api.get(`/users/ofGroup?groupId=${group.id}`);
 				return {
 					groupId: group.id,
@@ -169,8 +146,8 @@
 	}
 
 	function sortByDateDesc(a: GroupMapping, b: GroupMapping) {
-		const ta = a.created_at ? Date.parse(a.created_at) : 0;
-		const tb = b.created_at ? Date.parse(b.created_at) : 0;
+		const ta = a.created_at && typeof a.created_at === 'string' ? Date.parse(a.created_at) : 0;
+		const tb = b.created_at && typeof b.created_at === 'string' ? Date.parse(b.created_at) : 0;
 		return tb - ta;
 	}
 
@@ -238,7 +215,10 @@
 							<h3>{mapping.groupName}</h3>
 							<div>
 								<span style="font-weight: normal">Létrehozva:</span>
-								{mapping.created_at.replace(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/, '$1 $2')}
+								{(mapping.created_at as string).replace(
+									/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/,
+									'$1 $2'
+								)}
 							</div>
 						</div>
 

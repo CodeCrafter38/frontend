@@ -5,14 +5,8 @@
 	import { logout } from '$lib/logout';
 	import { onMount } from 'svelte';
 	import MultiSelect from '$lib/components/MultiSelect.svelte';
-	import type { GroupType } from '$lib/types';
-
 	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
-
-	type Group = {
-		id: number;
-		name: string;
-	};
+	import type { Group, GroupType } from '$lib/types';
 
 	const ALLOWED_EXTENSIONS = ['.doc', '.docx', '.xls', '.xlsx'];
 	const MAX_TOTAL_SIZE_MB = 100;

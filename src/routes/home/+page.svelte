@@ -3,18 +3,8 @@
 	import { getUserStatus } from '$lib/auth';
 	import { onMount } from 'svelte';
 	import api from '$lib/api';
-
 	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
-
-	type Group = {
-		id: number;
-		name: string;
-	};
-
-	type mapGroupsToPosts = {
-		groupId: number;
-		postIds: number[];
-	};
+	import type { Group, mapGroupsToPosts } from '$lib/types';
 
 	let user = null;
 	let posts: any = $state([]);
