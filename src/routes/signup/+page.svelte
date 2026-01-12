@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
 	import { onMount } from 'svelte';
@@ -20,14 +20,21 @@
 			return;
 		}
 
-		await api
-			.post('/signup', { username, email, password, role })
-			.then((response) => {
-				if (response.status !== 200) throw new Error('Sikertelen regisztráció!');
-				alert('Felhasználó létrehozva');
+		try {
+			const response = await api.post('/signup', { username, email, password, role });
+			if (response.status === 200) {
+				if (response.data?.msg) {
+					alert(response.data.msg);
+				}
 				goto('/login');
-			})
-			.catch(() => alert('Sikertelen regisztráció!'));
+			} else {
+				const msg = response.data?.msg ?? 'Sikertelen regisztráció!';
+				alert(`Sikertelen regisztráció: ${msg}`);
+			}
+		} catch (error: any) {
+			const msg = error?.response?.data?.msg ?? error?.message ?? 'Sikertelen regisztráció!';
+			alert(`Sikertelen regisztráció: ${msg}`);
+		}
 	}
 </script>
 

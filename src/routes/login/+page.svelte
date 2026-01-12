@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
 	import api from '$lib/api';
 	import { onMount } from 'svelte';
@@ -6,6 +6,7 @@
 
 	let email = '';
 	let password = '';
+	let role: 'TEACHER' | 'STUDENT' = 'STUDENT';
 
 	onMount(() => {
 		uiClear();
@@ -17,14 +18,23 @@
 			return;
 		}
 
-		await api
-			.post('/login', { email, password })
-			.then(() => goto('/home'))
-			.catch(() => alert('Felhasználónév vagy jelszó nem egyezik!'));
+		try {
+			const response = await api.post('/login', { email, password });
+			if (response.status === 200) {
+				goto('/home');
+			} else {
+				const msg = response.data?.msg;
+				alert(`Bejelentkezés sikertelen: ${msg}`);
+			}
+		} catch (error: any) {
+			const msg =
+				error?.response?.data?.msg ?? error?.message ?? 'Felhasználónév vagy jelszó nem egyezik!';
+			alert(`Bejelentkezés sikertelen: ${msg}`);
+		}
 	}
 
 	async function loginWithGoogle() {
-		window.location.href = 'http://localhost:4000/api/auth/google';
+		window.location.href = `http://localhost:4000/api/auth/google?role=${encodeURIComponent(role)}`;
 	}
 </script>
 
@@ -48,6 +58,10 @@
 
 	<hr />
 
+	<select bind:value={role} style="max-width: 170px;">
+		<option value="TEACHER">tanár vagyok</option>
+		<option value="STUDENT">diák vagyok</option>
+	</select>
 	<button class="btn" on:click={loginWithGoogle}>Belépés Google fiókkal</button>
 
 	<hr />

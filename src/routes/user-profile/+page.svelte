@@ -8,7 +8,7 @@
 	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
 	import type { GroupExtended, GroupMapping, User } from '$lib/types';
 
-	let user = null;
+	let user: User | null = $state(null);
 	let userName: string = $state('');
 	let userRole: string = $state('');
 	let availableGroups: GroupExtended[] = $state([]);
@@ -195,7 +195,9 @@
 		{/if}
 
 		<button class="btn" onclick={onUserNameChange}>Felhasználónév módosítása</button>
-		<button class="btn" onclick={onPasswordChange}>Jelszó módosítása</button>
+		{#if user?.canChangePassword}
+			<button class="btn" onclick={onPasswordChange}>Jelszó módosítása</button>
+		{/if}
 		<button class="btn" onclick={onUploadProfilePicture}>Profilkép feltöltése</button>
 		<button class="btn" onclick={onLogout}>Kijelentkezés</button>
 	</aside>
@@ -215,7 +217,7 @@
 							<h3>{mapping.groupName}</h3>
 							<div>
 								<span style="font-weight: normal">Létrehozva:</span>
-								{(mapping.created_at as string).replace(
+								{String(mapping.created_at).replace(
 									/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/,
 									'$1 $2'
 								)}
@@ -242,14 +244,14 @@
 										{#if userRole === 'TEACHER' && member.username !== userName && member.role !== 'ADMIN'}
 											<button
 												class="btn btn-sm"
-												onclick={() => removeUserFromGroup(mapping.groupName, member.id)}
+												onclick={() => removeUserFromGroup(mapping.groupName, member.userId)}
 											>
 												Kidobás
 											</button>
 										{:else if userRole === 'ADMIN' && member.username !== userName}
 											<button
 												class="btn btn-sm"
-												onclick={() => removeUserFromGroup(mapping.groupName, member.id)}
+												onclick={() => removeUserFromGroup(mapping.groupName, member.userId)}
 											>
 												Kidobás
 											</button>

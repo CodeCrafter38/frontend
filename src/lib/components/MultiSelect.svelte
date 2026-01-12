@@ -39,10 +39,6 @@
 			addFromInput();
 			return;
 		}
-
-		if (e.key === 'Backspace' && input.length === 0 && tags.length > 0) {
-			removeTag(tags.length - 1);
-		}
 	}
 </script>
 

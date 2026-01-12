@@ -4,18 +4,21 @@
 	import { onMount } from 'svelte';
 	import api from '$lib/api';
 	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
-	import type { Group, mapGroupsToPosts } from '$lib/types';
+	import type { Group, mapGroupsToPosts, Post, User } from '$lib/types';
 
-	let user = null;
-	let posts: any = $state([]);
-	let userGroups: Group[] = $state([]);
-	let groupIdsWithPostIds: mapGroupsToPosts[] = [];
+	let user: User | null = $state(null);
+	let posts: Post[] = $state([]);
+	let userId: number = $state(0);
 	let userName: string = $state('');
 	let userRole: string = $state('');
 	let profilePicture: any = $state(null);
 
+	let userGroups: Group[] = $state([]);
+	let groupIdsWithPostIds: mapGroupsToPosts[] = [];
+
 	let searchTerm: string = $state('');
 	let selectedGroups: number[] = $state([]);
+
 	let now = $state(Date.now());
 
 	setInterval(() => {
@@ -29,6 +32,7 @@
 			return;
 		}
 
+		userId = user.userId;
 		userName = user.username;
 		userRole = user.role;
 		profilePicture = user.profilePicture;
@@ -54,6 +58,8 @@
 		posts = postsAndUserGroups.readyPosts;
 		userGroups = postsAndUserGroups.groupsOfUser;
 		groupIdsWithPostIds = postsAndUserGroups.groupIdsWithPostIds;
+		console.log('Loaded posts and user groups:', posts, userGroups);
+		console.log('userId:', userId);
 	};
 
 	async function onLogout() {
@@ -79,7 +85,7 @@
 	}
 
 	async function onDeletePost(id: number) {
-		await api.delete(`/posts?id=${id}`);
+		await api.delete(`/posts/${id}`);
 		loadPosts();
 	}
 
@@ -88,7 +94,7 @@
 	}
 
 	async function onDeleteComment(id: number) {
-		const commentDeleted = await api.delete(`/comments?id=${id}`);
+		const commentDeleted = await api.delete(`/comments/${id}`);
 		if (commentDeleted.status === 204) loadPosts();
 		else alert('A kommentet már nem lehet törölni!');
 	}
@@ -161,7 +167,7 @@
 						<div class="post-meta">
 							<strong>Szerző: {post.username}</strong>
 							<div>
-								{post.created_at.replace(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/, '$1 $2')}
+								{String(post.created_at).replace(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}).*$/, '$1 $2')}
 							</div>
 						</div>
 
@@ -214,13 +220,16 @@
 										<div class="comment-meta">
 											<strong>Szerző: {comment.username}</strong>
 											<div>
-												{comment.created_at.replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}).*$/, '$1')}
+												{String(comment.created_at).replace(
+													/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}).*$/,
+													'$1'
+												)}
 											</div>
 										</div>
 
 										<div>{comment.content}</div>
 
-										{#if now - new Date(comment.created_at).getTime() < 60000 || userRole === 'ADMIN'}
+										{#if (comment.user_id === userId && now - new Date(comment.created_at).getTime() < 60000) || userRole === 'ADMIN'}
 											<div style="display:flex; justify-content:flex-end; margin-top: 0.5rem;">
 												<button class="btn btn-sm" onclick={() => onDeleteComment(comment.id)}>
 													Komment törlése
@@ -232,6 +241,7 @@
 							</ul>
 						{:else}
 							<em>Még nincsenek kommentek.</em>
+							<br />
 						{/if}
 
 						<br />

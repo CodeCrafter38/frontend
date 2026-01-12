@@ -81,7 +81,7 @@
 			return;
 		}
 
-		if (selectedGroups.length == 0 && !isPublic) {
+		if (availableGroups.length && selectedGroups.length === 0 && !isPublic) {
 			alert('Ha nem publikus a poszt, akkor legalább egy csoportot ki kell választani!');
 			return;
 		}
