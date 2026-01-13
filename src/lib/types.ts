@@ -3,7 +3,13 @@ export type User = {
 	username: string;
 	role: string;
 	profilePicture: FileType | null;
-	canChangePassword: boolean;
+	canChangePassword?: boolean;
+};
+
+export type UserOfGroup = {
+	id: number;
+	username: string;
+	role: string;
 };
 
 export type Post = {
@@ -55,7 +61,7 @@ export type GroupMapping = {
 	description?: string;
 	created_at: Date;
 	teachers_only: number;
-	members: User[];
+	members: UserOfGroup[];
 };
 
 export type FileType = {

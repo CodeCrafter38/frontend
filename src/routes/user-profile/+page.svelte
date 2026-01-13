@@ -6,7 +6,7 @@
 	import { onMount } from 'svelte';
 	import MultiSelect from '$lib/components/MultiSelect.svelte';
 	import { uiIsAuthenticated, uiProfilePictureUrl, uiUserName, uiUserRole } from '$lib/stores/ui';
-	import type { GroupExtended, GroupMapping, User } from '$lib/types';
+	import type { GroupExtended, GroupMapping, User, UserOfGroup } from '$lib/types';
 
 	let user: User | null = $state(null);
 	let userName: string = $state('');
@@ -52,13 +52,14 @@
 		const mappings = await Promise.all(
 			availableGroups.map(async (group: GroupExtended) => {
 				const usersOfGroup = await api.get(`/users/ofGroup?groupId=${group.id}`);
+				console.log('usersOfGroup', usersOfGroup.data);
 				return {
 					groupId: group.id,
 					groupName: group.name,
 					description: group.description,
 					created_at: group.created_at,
 					teachers_only: group.teachers_only,
-					members: usersOfGroup.data as User[]
+					members: usersOfGroup.data
 				} satisfies GroupMapping;
 			})
 		);
@@ -133,7 +134,7 @@
 					description: group.description,
 					created_at: group.created_at,
 					teachers_only: group.teachers_only,
-					members: usersOfGroup.data as User[]
+					members: usersOfGroup.data as UserOfGroup[]
 				} satisfies GroupMapping;
 			})
 		);
@@ -244,14 +245,14 @@
 										{#if userRole === 'TEACHER' && member.username !== userName && member.role !== 'ADMIN'}
 											<button
 												class="btn btn-sm"
-												onclick={() => removeUserFromGroup(mapping.groupName, member.userId)}
+												onclick={() => removeUserFromGroup(mapping.groupName, member.id)}
 											>
 												Kidobás
 											</button>
 										{:else if userRole === 'ADMIN' && member.username !== userName}
 											<button
 												class="btn btn-sm"
-												onclick={() => removeUserFromGroup(mapping.groupName, member.userId)}
+												onclick={() => removeUserFromGroup(mapping.groupName, member.id)}
 											>
 												Kidobás
 											</button>

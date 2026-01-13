@@ -65,7 +65,8 @@
 	});
 
 	async function createPost() {
-		if (userRole === 'STUDENT') isPublic = true;
+		if (userRole === 'STUDENT' || (userRole === 'TEACHER' && !availableGroups.length))
+			isPublic = true;
 
 		const totalSize = getTotalSize(files);
 		if (totalSize > MAX_TOTAL_SIZE_BYTES) {
